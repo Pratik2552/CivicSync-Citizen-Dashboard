@@ -6,6 +6,7 @@ import 'leaflet/dist/leaflet.css';
 import { issueCategories } from '../data/mockData';
 import { SeverityBadge } from '../components/common/StatusBadge';
 import { Upload, MapPin, X, CheckCircle, AlertTriangle } from 'lucide-react';
+import { api } from '../services/api';
 import './ReportIssuePage.css';
 
 // Fix default marker icons for Leaflet + Vite
@@ -23,13 +24,6 @@ function DraggableMarker({ position, setPosition }) {
   return position ? <Marker position={position} draggable eventHandlers={{ dragend: e => setPosition([e.target.getLatLng().lat, e.target.getLatLng().lng]) }} /> : null;
 }
 
-const AI_CLASSIFICATIONS = {
-  overflowing_bin: { label: 'Overflowing Bin', confidence: 91 },
-  missed_pickup:   { label: 'Uncollected Waste', confidence: 84 },
-  broken_bin:      { label: 'Damaged Bin',       confidence: 78 },
-  illegal_dumping: { label: 'Illegal Dump',      confidence: 88 },
-};
-
 export default function ReportIssuePage() {
   const navigate = useNavigate();
   const fileInputRef = useRef();
@@ -44,6 +38,7 @@ export default function ReportIssuePage() {
   const [pinPosition, setPinPosition] = useState(null);
   const [locLoading, setLocLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
   const [referenceId, setReferenceId] = useState('');
   const [dragOver, setDragOver] = useState(false);
 
@@ -52,14 +47,10 @@ export default function ReportIssuePage() {
   const handleImageFile = (file) => {
     if (!file) return;
     setImageFile(file);
+    setSubmitError('');
     const reader = new FileReader();
     reader.onload = e => setImagePreview(e.target.result);
     reader.readAsDataURL(file);
-    // Simulate AI classification after short delay
-    setTimeout(() => {
-      const catId = category || issueCategories[Math.floor(Math.random() * issueCategories.length)].id;
-      setAiResult(AI_CLASSIFICATIONS[catId] || AI_CLASSIFICATIONS.overflowing_bin);
-    }, 1200);
   };
 
   const handleDrop = (e) => {
@@ -90,14 +81,50 @@ export default function ReportIssuePage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!category || !address) return;
+    if (!imageFile) {
+      setSubmitError('Please upload a photo of the waste site.');
+      return;
+    }
+    if (!address && !pinPosition) {
+      setSubmitError('Please select or detect a location for the problem.');
+      return;
+    }
+
     setSubmitting(true);
-    // Simulate API call
-    await new Promise(r => setTimeout(r, 1200));
-    const id = `CMP-2026-${String(Math.floor(Math.random() * 900) + 100).padStart(5, '0')}`;
-    setReferenceId(id);
-    setSubmitting(false);
-    setStep(2);
+    setSubmitError('');
+
+    try {
+      const formData = new FormData();
+      formData.append('image', imageFile);
+      formData.append('description', description);
+      
+      if (pinPosition) {
+        formData.append('latitude', pinPosition[0]);
+        formData.append('longitude', pinPosition[1]);
+      } else {
+        // Fallback default coordinates if user typed raw address text without map pin
+        formData.append('latitude', '18.5204');
+        formData.append('longitude', '73.8567');
+      }
+
+      const response = await api.submitComplaint(formData);
+
+      if (response.success && response.complaint) {
+        setReferenceId(response.complaint.id);
+        if (response.complaint.category || response.complaint.ai_reason) {
+          setAiResult({
+            label: response.complaint.category || 'Verified Waste',
+            confidence: Math.round((response.complaint.ai_confidence || 0.95) * 100),
+            reason: response.complaint.ai_reason
+          });
+        }
+        setStep(2);
+      }
+    } catch (err) {
+      setSubmitError(err.message || 'Failed to submit complaint. Please check your image and location.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (step === 2) {
@@ -113,7 +140,7 @@ export default function ReportIssuePage() {
           <div className="report-success__icon"><CheckCircle size={56} /></div>
           <h2>Thank you for reporting!</h2>
           <p className="report-success__desc">
-            Your complaint has been successfully submitted. The municipal team will verify it shortly.
+            Your complaint has been successfully verified and submitted. The municipal team will process it shortly.
           </p>
           <div className="report-success__id-box">
             <div className="report-success__id-label">Your Complaint Reference ID</div>
@@ -131,7 +158,7 @@ export default function ReportIssuePage() {
             <button
               className="btn btn-secondary"
               id="report-another-btn"
-              onClick={() => { setStep(1); setImageFile(null); setImagePreview(null); setCategory(''); setDescription(''); setAddress(''); setPinPosition(null); setAiResult(null); }}
+              onClick={() => { setStep(1); setImageFile(null); setImagePreview(null); setCategory(''); setDescription(''); setAddress(''); setPinPosition(null); setAiResult(null); setSubmitError(''); }}
             >
               Report Another Issue
             </button>
@@ -158,7 +185,7 @@ export default function ReportIssuePage() {
             <div className="report-section__header">
               <span className="report-section__num">1</span>
               <h2 className="report-section__title">Upload a Photo</h2>
-              <span className="report-section__optional">(recommended)</span>
+              <span className="report-section__required">Required</span>
             </div>
             {!imagePreview ? (
               <div
@@ -205,10 +232,10 @@ export default function ReportIssuePage() {
                     <span className="ai-result__confidence">{aiResult.confidence}% confidence</span>
                   </div>
                 )}
-                {!aiResult && (
+                {submitting && !aiResult && (
                   <div className="ai-result ai-result--loading">
                     <span className="spinner" style={{ width: 16, height: 16, margin: 0, borderWidth: 2 }} />
-                    <span>Analysing image…</span>
+                    <span>Verifying image with AI Vision…</span>
                   </div>
                 )}
               </div>
@@ -330,21 +357,26 @@ export default function ReportIssuePage() {
 
           {/* Submit */}
           <div className="report-submit" id="submit-section">
-            {(!category || !address) && (
+            {submitError && (
+              <div className="alert alert-error" style={{ marginBottom: 12 }}>
+                {submitError}
+              </div>
+            )}
+            {(!category || !address || !imageFile) && !submitError && (
               <div className="alert alert-warning">
-                Please select a problem category and provide the location before submitting.
+                Please upload an image, select a problem category, and provide the location before submitting.
               </div>
             )}
             <button
               type="submit"
               className="btn btn-primary btn-lg btn-full"
               id="submit-report-btn"
-              disabled={!category || !address || submitting}
+              disabled={!category || !address || !imageFile || submitting}
             >
               {submitting ? (
                 <>
                   <span className="spinner" style={{ width: 18, height: 18, margin: 0, borderWidth: 2 }} />
-                  Submitting…
+                  Verifying & Submitting…
                 </>
               ) : (
                 'Submit Complaint'
