@@ -1,42 +1,105 @@
-import axios from 'axios';
+// Centralized API Base URL for Vite
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
-// Base URL — replace with real backend URL when available
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+/**
+ * Generic fetch wrapper for standard JSON requests with automatic JWT token injection
+ */
+async function request(endpoint, options = {}) {
+  // Check for admin token first, fallback to standard token
+  const token = localStorage.getItem('civicsync_admin_token') || localStorage.getItem('civicsync_token');
 
-const api = axios.create({
-  baseURL: BASE_URL,
-  timeout: 10000,
-  headers: { 'Content-Type': 'application/json' },
-});
+  const headers = {
+    'Content-Type': 'application/json',
+    ...(token && { Authorization: `Bearer ${token}` }),
+    ...options.headers,
+  };
 
-// Attach auth token to every request
-api.interceptors.request.use(config => {
-  const token = localStorage.getItem('civicsync_token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    ...options,
+    headers,
+  });
 
-// ─── Complaints / Reports ─────────────────────────────────────────────────────
-export const getMyReports      = ()         => api.get('/complaints/my');
-export const getReportById     = (id)       => api.get(`/complaints/${id}`);
-export const submitReport      = (data)     => api.post('/complaints', data, {
-  headers: { 'Content-Type': 'multipart/form-data' },
-});
-export const submitRating      = (id, rating) => api.patch(`/complaints/${id}/rating`, { rating });
+  const data = await response.json().catch(() => ({}));
 
-// ─── Bin Locations ────────────────────────────────────────────────────────────
-export const getBinLocations   = ()         => api.get('/bins/public');
+  if (!response.ok) {
+    const error = new Error(data.error || data.reason || data.message || 'An error occurred');
+    error.status = response.status;
+    error.data = data;
+    throw error;
+  }
 
-// ─── City Statistics ──────────────────────────────────────────────────────────
-export const getCityStats      = ()         => api.get('/stats/public');
+  return data;
+}
 
-// ─── Citizen Profile ──────────────────────────────────────────────────────────
-export const getProfile        = ()         => api.get('/citizens/me');
-export const updateProfile     = (data)     => api.put('/citizens/me', data);
-export const updateNotifications = (prefs)  => api.patch('/citizens/me/notifications', prefs);
+export const api = {
+  // ==========================================
+  // AUTHENTICATION ENDPOINTS
+  // ==========================================
+  
+  // Citizen Sign In (Email & Password)
+  login: (email, password) =>
+    request('/auth/citizen/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    }),
 
-// ─── Auth ─────────────────────────────────────────────────────────────────────
-export const loginCitizen      = (phone, password) => api.post('/auth/citizen/login', { phone, password });
-export const registerCitizen   = (data)    => api.post('/auth/citizen/register', data);
+  // Citizen Sign Up
+  signup: (full_name, email, password) =>
+    request('/auth/citizen/signup', {
+      method: 'POST',
+      body: JSON.stringify({ full_name, email, password }),
+    }),
 
-export default api;
+  // Google OAuth Authentication
+  googleAuth: (idToken) =>
+    request('/auth/citizen/google', {
+      method: 'POST',
+      body: JSON.stringify({ idToken }),
+    }),
+
+  // ==========================================
+  // COMPLAINT / GRIEVANCE ENDPOINTS
+  // ==========================================
+
+  /**
+   * Submit new complaint with photo upload, EXIF metadata, and Gemini AI verification
+   * @param {FormData} formData - Contains 'image' (file), 'description', 'latitude', 'longitude'
+   */
+  submitComplaint: async (formData) => {
+    const token = localStorage.getItem('civicsync_token');
+
+    const response = await fetch(`${API_BASE_URL}/complaints`, {
+      method: 'POST',
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+      body: formData,
+    });
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      const error = new Error(data.error || data.reason || 'Failed to submit complaint');
+      error.status = response.status;
+      error.data = data;
+      throw error;
+    }
+
+    return data;
+  },
+
+  // Fetch complaints submitted by logged-in citizen
+  getMyComplaints: () => request('/complaints/my-complaints'),
+
+  // Fetch all complaints (Admin View)
+  getAllComplaintsAdmin: () => request('/complaints/admin/all'),
+
+  // ==========================================
+  // LIVE TRACKING & FLEET ENDPOINTS
+  // ==========================================
+  
+  getAssignedDriversTracking: () => request('/tracking/assigned-drivers'),
+};
+
+// Also export individual helper if needed by other components
+export const getAssignedDriversTracking = api.getAssignedDriversTracking;

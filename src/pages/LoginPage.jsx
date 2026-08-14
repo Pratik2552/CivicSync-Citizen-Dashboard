@@ -1,41 +1,61 @@
 import React, { useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './LoginPage.css';
 
 export default function LoginPage() {
   const [searchParams] = useSearchParams();
   const [tab, setTab] = useState(searchParams.get('tab') === 'register' ? 'register' : 'login');
-  const { login, loading } = useAuth();
+  const { login, register, loading } = useAuth();
   const navigate = useNavigate();
 
-  // Login state
-  const [phone, setPhone] = useState('');
+  // Login state (email/password matching backend)
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
 
-  // Register state
+  // Register state (full_name, email, password matching backend)
   const [regName, setRegName] = useState('');
-  const [regPhone, setRegPhone] = useState('');
   const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
-  const [regLocality, setRegLocality] = useState('');
+  const [regError, setRegError] = useState('');
   const [regSuccess, setRegSuccess] = useState(false);
 
+  // Handle Citizen Login
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoginError('');
-    const ok = await login(phone, password);
-    if (ok) navigate('/profile');
-    else setLoginError('Invalid phone number or password. Please try again.');
+
+    const res = await login(email, password);
+    if (res.success) {
+      navigate('/profile');
+    } else {
+      setLoginError(res.error || 'Invalid email or password. Please try again.');
+    }
   };
 
+  // Handle Citizen Registration
   const handleRegister = async (e) => {
     e.preventDefault();
-    // Simulate registration API call
-    await new Promise(r => setTimeout(r, 800));
-    setRegSuccess(true);
-    setTimeout(() => { setTab('login'); setRegSuccess(false); }, 2500);
+    setRegError('');
+    setRegSuccess(false);
+
+    const res = await register({
+      full_name: regName,
+      email: regEmail,
+      password: regPassword,
+    });
+
+    if (res.success) {
+      setRegSuccess(true);
+      setTimeout(() => {
+        setTab('login');
+        setRegSuccess(false);
+        setEmail(regEmail); // Pre-fill login email field
+      }, 2000);
+    } else {
+      setRegError(res.error || 'Registration failed. Please try again.');
+    }
   };
 
   return (
@@ -57,7 +77,7 @@ export default function LoginPage() {
               role="tab"
               aria-selected={tab === 'login'}
               id="login-tab-btn"
-              onClick={() => setTab('login')}
+              onClick={() => { setTab('login'); setLoginError(''); }}
             >
               Sign In
             </button>
@@ -66,7 +86,7 @@ export default function LoginPage() {
               role="tab"
               aria-selected={tab === 'register'}
               id="register-tab-btn"
-              onClick={() => setTab('register')}
+              onClick={() => { setTab('register'); setRegError(''); }}
             >
               Register
             </button>
@@ -76,22 +96,25 @@ export default function LoginPage() {
           {tab === 'login' && (
             <form className="login-form" onSubmit={handleLogin} id="login-form">
               <p className="login-form__desc">
-                Sign in with your registered mobile number to track and manage your complaints.
+                Sign in with your email address to track and manage your complaints.
               </p>
+              
               {loginError && <div className="alert alert-error" id="login-error">{loginError}</div>}
+
               <div className="form-group">
-                <label className="form-label" htmlFor="login-phone">Mobile Number <span>*</span></label>
+                <label className="form-label" htmlFor="login-email">Email Address <span>*</span></label>
                 <input
-                  id="login-phone"
+                  id="login-email"
                   className="form-input"
-                  type="tel"
-                  placeholder="+91 98765 43210"
-                  value={phone}
-                  onChange={e => setPhone(e.target.value)}
+                  type="email"
+                  placeholder="you@email.com"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
                   required
-                  autoComplete="tel"
+                  autoComplete="email"
                 />
               </div>
+
               <div className="form-group">
                 <label className="form-label" htmlFor="login-password">Password <span>*</span></label>
                 <input
@@ -105,9 +128,11 @@ export default function LoginPage() {
                   autoComplete="current-password"
                 />
               </div>
+
               <div className="login-form__forgot">
                 <a href="#" className="login-form__link">Forgot password?</a>
               </div>
+
               <button
                 type="submit"
                 className="btn btn-primary btn-lg btn-full"
@@ -116,12 +141,15 @@ export default function LoginPage() {
               >
                 {loading ? 'Signing in…' : 'Sign In'}
               </button>
-              <p className="login-form__demo">
-                <strong>Demo:</strong> Enter any phone/password to log in with a sample account.
-              </p>
+
               <p className="login-form__switch">
                 New to CivicSync?{' '}
-                <button type="button" className="login-form__link" onClick={() => setTab('register')} id="switch-to-register-btn">
+                <button
+                  type="button"
+                  className="login-form__link"
+                  onClick={() => { setTab('register'); setRegError(''); }}
+                  id="switch-to-register-btn"
+                >
                   Create an account
                 </button>
               </p>
@@ -132,13 +160,21 @@ export default function LoginPage() {
           {tab === 'register' && (
             <form className="login-form" onSubmit={handleRegister} id="register-form">
               <p className="login-form__desc">
-                Register with your mobile number to report garbage problems and track complaints.
+                Register with your email to report garbage problems and track complaints.
               </p>
+
               {regSuccess && (
                 <div className="alert alert-success" id="register-success-msg">
                   Registration successful! Redirecting to sign in…
                 </div>
               )}
+
+              {regError && (
+                <div className="alert alert-error" id="register-error-msg">
+                  {regError}
+                </div>
+              )}
+
               <div className="form-group">
                 <label className="form-label" htmlFor="reg-name">Full Name <span>*</span></label>
                 <input
@@ -150,20 +186,9 @@ export default function LoginPage() {
                   required
                 />
               </div>
+
               <div className="form-group">
-                <label className="form-label" htmlFor="reg-phone">Mobile Number <span>*</span></label>
-                <input
-                  id="reg-phone"
-                  className="form-input"
-                  type="tel"
-                  placeholder="+91 98765 43210"
-                  value={regPhone}
-                  onChange={e => setRegPhone(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label" htmlFor="reg-email">Email Address</label>
+                <label className="form-label" htmlFor="reg-email">Email Address <span>*</span></label>
                 <input
                   id="reg-email"
                   className="form-input"
@@ -171,19 +196,10 @@ export default function LoginPage() {
                   placeholder="you@email.com"
                   value={regEmail}
                   onChange={e => setRegEmail(e.target.value)}
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label" htmlFor="reg-locality">Locality / Ward <span>*</span></label>
-                <input
-                  id="reg-locality"
-                  className="form-input"
-                  placeholder="e.g. Deccan, Pune"
-                  value={regLocality}
-                  onChange={e => setRegLocality(e.target.value)}
                   required
                 />
               </div>
+
               <div className="form-group">
                 <label className="form-label" htmlFor="reg-password">Create Password <span>*</span></label>
                 <input
@@ -197,16 +213,24 @@ export default function LoginPage() {
                   minLength={8}
                 />
               </div>
+
               <button
                 type="submit"
                 className="btn btn-primary btn-lg btn-full"
                 id="register-submit-btn"
+                disabled={loading}
               >
-                Create Account
+                {loading ? 'Creating Account…' : 'Create Account'}
               </button>
+
               <p className="login-form__switch">
                 Already registered?{' '}
-                <button type="button" className="login-form__link" onClick={() => setTab('login')} id="switch-to-login-btn">
+                <button
+                  type="button"
+                  className="login-form__link"
+                  onClick={() => { setTab('login'); setLoginError(''); }}
+                  id="switch-to-login-btn"
+                >
                   Sign in here
                 </button>
               </p>

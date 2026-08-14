@@ -21,14 +21,14 @@ export default function HomePage() {
         <div className="container hero__inner">
           <div className="hero__badge">
             <span className="hero__badge-dot" />
-            Official CivicSync Portal — Pune Municipal Corporation
+            Official CivicSync Portal — Nashik Municipal Corporation
           </div>
           <h1 className="hero__title">
             Cleaner Communities Through<br />
             <span className="hero__title-highlight">Smarter Waste Management</span>
           </h1>
           <p className="hero__desc">
-            CivicSync connects Pune residents with municipal waste services.
+            CivicSync connects Nashik residents with municipal waste services.
             Report garbage problems, track bin status, and follow your complaint — all in one place.
           </p>
           <div className="hero__actions">
@@ -91,7 +91,7 @@ export default function HomePage() {
             <div className="section-label">Live Bin Tracking</div>
             <h2 className="section-title">Find Bins Near You</h2>
             <p className="section-subtitle">
-              Real-time status of public waste bins across Pune. Click any bin marker for details.
+              Real-time status of public waste bins across Nashik. Click any bin marker for details.
             </p>
           </div>
           <BinMap height="460px" />
