@@ -1,60 +1,204 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { api } from '../services/api';
 import './LoginPage.css';
 
 export default function LoginPage() {
   const [searchParams] = useSearchParams();
   const [tab, setTab] = useState(searchParams.get('tab') === 'register' ? 'register' : 'login');
-  const { login, register, loading } = useAuth();
+  const { login, loginWithToken } = useAuth();
   const navigate = useNavigate();
 
-  // Login state (email/password matching backend)
+  const [loading, setLoading] = useState(false);
+
+  // Login State
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
 
-  // Register state (full_name, email, password matching backend)
+  // Register State
   const [regName, setRegName] = useState('');
   const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
   const [regError, setRegError] = useState('');
   const [regSuccess, setRegSuccess] = useState(false);
 
+  const [googleAuthAvailable, setGoogleAuthAvailable] = useState(true);
+
+  // Load Google Auth Script for Google Sign-In
+  useEffect(() => {
+    const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    if (!googleClientId || googleClientId.trim() === '') {
+      setGoogleAuthAvailable(false);
+      return;
+    }
+
+    const initGoogleButton = (clientId) => {
+      try {
+        if (window.google?.accounts?.id) {
+          window.google.accounts.id.initialize({
+            client_id: clientId,
+            callback: handleGoogleResponse,
+            error_callback: (err) => {
+              console.warn('⚠️ Google Sign-In Origin Error (Requires Google Console setup):', err);
+              setGoogleAuthAvailable(false);
+            },
+          });
+
+          const btnElem = document.getElementById('google-signin-btn');
+          if (btnElem) {
+            btnElem.innerHTML = '';
+            window.google.accounts.id.renderButton(
+              btnElem,
+              { theme: 'outline', size: 'large', width: '100%', text: 'continue_with' }
+            );
+          }
+        }
+      } catch (e) {
+        console.warn('⚠️ Google Sign-In Init Exception:', e);
+        setGoogleAuthAvailable(false);
+      }
+    };
+
+    const loadGoogleScript = () => {
+      if (window.google?.accounts?.id) {
+        initGoogleButton(googleClientId);
+        return;
+      }
+      if (document.getElementById('google-jssdk')) {
+        setTimeout(() => initGoogleButton(googleClientId), 200);
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.id = 'google-jssdk';
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      script.onload = () => {
+        initGoogleButton(googleClientId);
+      };
+      script.onerror = () => {
+        console.warn('⚠️ Google JSSDK script failed to load.');
+        setGoogleAuthAvailable(false);
+      };
+      document.body.appendChild(script);
+    };
+
+    loadGoogleScript();
+  }, [tab]);
+
+  // Handle Google OAuth Callback Response
+  const handleGoogleResponse = async (response) => {
+    if (!response.credential) return;
+    setLoading(true);
+    setLoginError('');
+    setRegError('');
+
+    try {
+      const res = await api.googleAuth(response.credential);
+      if (res.token) {
+        localStorage.setItem('civicsync_token', res.token);
+        if (loginWithToken) {
+          await loginWithToken(res.token, res.user);
+        }
+        navigate('/profile');
+      } else {
+        setLoginError('Google authentication failed. Please try again.');
+      }
+    } catch (err) {
+      setLoginError(err.message || 'Google authentication failed.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Handle Citizen Login
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoginError('');
+    setLoading(true);
 
-    const res = await login(email, password);
-    if (res.success) {
-      navigate('/profile');
-    } else {
-      setLoginError(res.error || 'Invalid email or password. Please try again.');
+    try {
+      const res = await api.login(email, password);
+      console.log('✅ Login response:', res);
+      
+      // Backend returns: { message, user, access_token, refresh_token, expires_at }
+      if (res.access_token && res.user) {
+        localStorage.setItem('civicsync_token', res.access_token);
+        localStorage.setItem('civicsync_refresh_token', res.refresh_token);
+        localStorage.setItem('civicsync_token_expires_at', res.expires_at);
+        localStorage.setItem('civicsync_user', JSON.stringify(res.user));
+        
+        if (login) {
+          await login(email, password);
+        }
+        navigate('/profile');
+      } else {
+        setLoginError('Invalid response from server. Please try again.');
+      }
+    } catch (err) {
+      console.error('❌ Login error:', err);
+      setLoginError(err.message || 'Invalid email or password. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Handle Citizen Registration
+  // Step 1: Send OTP for Citizen Registration (REMOVED - Backend signup doesn't require OTP)
+  // Backend citizenSignup creates user and sends confirmation email automatically
+  
+  // Handle Citizen Signup (Simplified - no OTP required)
   const handleRegister = async (e) => {
     e.preventDefault();
     setRegError('');
-    setRegSuccess(false);
+    setLoading(true);
 
-    const res = await register({
-      full_name: regName,
-      email: regEmail,
-      password: regPassword,
-    });
+    // Frontend validation
+    if (!regName || regName.trim().length < 2) {
+      setRegError('Please enter your full name (at least 2 characters).');
+      setLoading(false);
+      return;
+    }
 
-    if (res.success) {
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(regEmail)) {
+      setRegError('Please enter a valid email address (e.g., anuj@gmail.com).');
+      setLoading(false);
+      return;
+    }
+
+    // Validate password
+    if (regPassword.length < 6) {
+      setRegError('Password must be at least 6 characters long.');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      console.log('📝 Registering user:', { regName, regEmail });
+      const res = await api.signup(regName, regEmail, regPassword);
+      console.log('✅ Signup response:', res);
+
       setRegSuccess(true);
+      
+      // Signup successful - user needs to confirm email or can login directly
+      // depending on Supabase email confirmation settings
       setTimeout(() => {
+        setEmail(regEmail);
         setTab('login');
         setRegSuccess(false);
-        setEmail(regEmail); // Pre-fill login email field
+        setRegName('');
+        setRegEmail('');
+        setRegPassword('');
       }, 2000);
-    } else {
-      setRegError(res.error || 'Registration failed. Please try again.');
+    } catch (err) {
+      console.error('❌ Signup error:', err);
+      setRegError(err.message || 'Registration failed. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -77,7 +221,10 @@ export default function LoginPage() {
               role="tab"
               aria-selected={tab === 'login'}
               id="login-tab-btn"
-              onClick={() => { setTab('login'); setLoginError(''); }}
+              onClick={() => {
+                setTab('login');
+                setLoginError('');
+              }}
             >
               Sign In
             </button>
@@ -86,7 +233,10 @@ export default function LoginPage() {
               role="tab"
               aria-selected={tab === 'register'}
               id="register-tab-btn"
-              onClick={() => { setTab('register'); setRegError(''); }}
+              onClick={() => {
+                setTab('register');
+                setRegError('');
+              }}
             >
               Register
             </button>
@@ -98,7 +248,7 @@ export default function LoginPage() {
               <p className="login-form__desc">
                 Sign in with your email address to track and manage your complaints.
               </p>
-              
+
               {loginError && <div className="alert alert-error" id="login-error">{loginError}</div>}
 
               <div className="form-group">
@@ -109,7 +259,7 @@ export default function LoginPage() {
                   type="email"
                   placeholder="you@email.com"
                   value={email}
-                  onChange={e => setEmail(e.target.value)}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
                   autoComplete="email"
                 />
@@ -123,7 +273,7 @@ export default function LoginPage() {
                   type="password"
                   placeholder="Enter your password"
                   value={password}
-                  onChange={e => setPassword(e.target.value)}
+                  onChange={(e) => setPassword(e.target.value)}
                   required
                   autoComplete="current-password"
                 />
@@ -142,12 +292,24 @@ export default function LoginPage() {
                 {loading ? 'Signing in…' : 'Sign In'}
               </button>
 
-              <p className="login-form__switch">
+              {googleAuthAvailable && (
+                <>
+                  <div className="social-divider" style={{ textAlign: 'center', margin: '16px 0 12px 0', fontSize: '13px', color: 'var(--color-text-muted, #888)' }}>
+                    <span>OR</span>
+                  </div>
+                  <div id="google-signin-btn" style={{ width: '100%', minHeight: '40px' }}></div>
+                </>
+              )}
+
+              <p className="login-form__switch" style={{ marginTop: '16px' }}>
                 New to CivicSync?{' '}
                 <button
                   type="button"
                   className="login-form__link"
-                  onClick={() => { setTab('register'); setRegError(''); }}
+                  onClick={() => {
+                    setTab('register');
+                    setRegError('');
+                  }}
                   id="switch-to-register-btn"
                 >
                   Create an account
@@ -158,7 +320,11 @@ export default function LoginPage() {
 
           {/* Register Form */}
           {tab === 'register' && (
-            <form className="login-form" onSubmit={handleRegister} id="register-form">
+            <form
+              className="login-form"
+              onSubmit={handleRegister}
+              id="register-form"
+            >
               <p className="login-form__desc">
                 Register with your email to report garbage problems and track complaints.
               </p>
@@ -182,7 +348,7 @@ export default function LoginPage() {
                   className="form-input"
                   placeholder="Priya Sharma"
                   value={regName}
-                  onChange={e => setRegName(e.target.value)}
+                  onChange={(e) => setRegName(e.target.value)}
                   required
                 />
               </div>
@@ -195,7 +361,7 @@ export default function LoginPage() {
                   type="email"
                   placeholder="you@email.com"
                   value={regEmail}
-                  onChange={e => setRegEmail(e.target.value)}
+                  onChange={(e) => setRegEmail(e.target.value)}
                   required
                 />
               </div>
@@ -208,9 +374,9 @@ export default function LoginPage() {
                   type="password"
                   placeholder="Minimum 8 characters"
                   value={regPassword}
-                  onChange={e => setRegPassword(e.target.value)}
+                  onChange={(e) => setRegPassword(e.target.value)}
                   required
-                  minLength={8}
+                  minLength={6}
                 />
               </div>
 
@@ -223,12 +389,24 @@ export default function LoginPage() {
                 {loading ? 'Creating Account…' : 'Create Account'}
               </button>
 
-              <p className="login-form__switch">
+              {googleAuthAvailable && (
+                <>
+                  <div className="social-divider" style={{ textAlign: 'center', margin: '16px 0 12px 0', fontSize: '13px', color: 'var(--color-text-muted, #888)' }}>
+                    <span>OR</span>
+                  </div>
+                  <div id="google-signin-btn" style={{ width: '100%', minHeight: '40px' }}></div>
+                </>
+              )}
+
+              <p className="login-form__switch" style={{ marginTop: '16px' }}>
                 Already registered?{' '}
                 <button
                   type="button"
                   className="login-form__link"
-                  onClick={() => { setTab('login'); setLoginError(''); }}
+                  onClick={() => {
+                    setTab('login');
+                    setLoginError('');
+                  }}
                   id="switch-to-login-btn"
                 >
                   Sign in here

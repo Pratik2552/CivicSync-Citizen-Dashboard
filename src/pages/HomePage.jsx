@@ -36,6 +36,9 @@ export default function HomePage() {
               <AlertTriangle size={18} />
               Report Garbage Hotspot
             </Link>
+            <Link to="/report-dead-animal" className="btn btn-primary btn-lg" style={{ background: '#b91c1c', borderColor: '#991b1b', color: '#fff' }} id="hero-dead-animal-btn">
+              🐾 Report Dead Animal
+            </Link>
             <button onClick={scrollToMap} className="btn btn-outline-light btn-lg" id="hero-map-btn">
               <MapPin size={18} />
               Find Nearby Bins

@@ -12,18 +12,25 @@ export default function MyReportsPage() {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('all');
 
-  // Fetch complaints belonging exclusively to the logged-in user
+  // Fetch complaints & dead animal alerts belonging exclusively to the logged-in user
   useEffect(() => {
     let isMounted = true;
     const fetchUserComplaints = async () => {
       try {
         setLoading(true);
         setError('');
-        const response = await api.getMyComplaints();
-        
+
+        // 1. Fetch regular complaints
+        const compPromise = api.getMyComplaints().catch(() => ({ complaints: [] }));
+
+        // 2. Fetch dead animal reports (uses same auth pipeline)
+        const deadAnimalPromise = api.getMyDeadAnimalReports().catch(() => ({ reports: [] }));
+
+        const [compData, deadAnimalData] = await Promise.all([compPromise, deadAnimalPromise]);
+
         if (isMounted) {
-          // Normalize response data structure from backend
-          const userReports = (response.complaints || []).map(r => ({
+          // Normalize regular complaints
+          const regularReports = (compData.complaints || []).map(r => ({
             id: r.id,
             category: r.category || 'Garbage Issue',
             description: r.description || 'No description provided.',
@@ -31,9 +38,26 @@ export default function MyReportsPage() {
             status: r.status ? r.status.toLowerCase() : 'open',
             severity: r.priority || 'Normal',
             submittedAt: r.created_at ? new Date(r.created_at).toLocaleDateString() : 'Recently',
-            updatedAt: r.updated_at ? new Date(r.updated_at).toLocaleDateString() : null
+            updatedAt: r.updated_at ? new Date(r.updated_at).toLocaleDateString() : null,
           }));
-          setReports(userReports);
+
+          // Normalize dead animal reports
+          const deadAnimalReports = (deadAnimalData.reports || []).map(r => ({
+            id: r.id,
+            category: '🐾 Dead Animal Alert',
+            description: r.description || 'Dead animal carcass alert reported.',
+            location: r.location_address || `${parseFloat(r.latitude).toFixed(4)}, ${parseFloat(r.longitude).toFixed(4)}`,
+            status: r.status ? r.status.toLowerCase() : 'pending',
+            severity: 'High',
+            image_url: r.image_url,
+            assigned_driver: r.assigned_driver_name,
+            submittedAt: r.created_at ? new Date(r.created_at).toLocaleDateString() : 'Recently',
+            updatedAt: r.resolved_at ? new Date(r.resolved_at).toLocaleDateString() : null,
+          }));
+
+          // Combine and sort by date descending
+          const combined = [...deadAnimalReports, ...regularReports];
+          setReports(combined);
         }
       } catch (err) {
         if (isMounted) {
@@ -62,7 +86,7 @@ export default function MyReportsPage() {
     const matchFilter = 
       filter === 'all' || 
       normalizedStatus === filter.toLowerCase() ||
-      (filter === 'submitted' && (normalizedStatus === 'open' || normalizedStatus === 'submitted'));
+      (filter === 'submitted' && (normalizedStatus === 'open' || normalizedStatus === 'submitted' || normalizedStatus === 'pending'));
 
     return matchSearch && matchFilter;
   });
@@ -74,8 +98,8 @@ export default function MyReportsPage() {
     <div className="page-wrapper">
       <div className="page-hero">
         <div className="container">
-          <h1>My Complaints</h1>
-          <p>View and track all complaints you have submitted.</p>
+          <h1>My Complaints &amp; Alerts</h1>
+          <p>View and track all garbage issues and dead animal alerts you have submitted.</p>
         </div>
       </div>
 
@@ -103,9 +127,8 @@ export default function MyReportsPage() {
               style={{ minWidth: 160 }}
             >
               <option value="all">All Statuses</option>
-              <option value="submitted">Submitted / Open</option>
-              <option value="verified">Verified</option>
-              <option value="driver_assigned">Driver Assigned</option>
+              <option value="submitted">Submitted / Pending</option>
+              <option value="assigned">Assigned to Driver</option>
               <option value="cleaned">Cleaned / Resolved</option>
             </select>
           </div>
@@ -115,7 +138,7 @@ export default function MyReportsPage() {
         <div className="report-summary-chips">
           <div className="summary-chip">
             <span className="summary-chip__value">{reports.length}</span>
-            <span className="summary-chip__label">Total</span>
+            <span className="summary-chip__label">Total Alerts</span>
           </div>
           <div className="summary-chip">
             <span className="summary-chip__value">{resolvedCount}</span>
@@ -131,7 +154,7 @@ export default function MyReportsPage() {
         {loading && (
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '3rem 0' }}>
             <Loader2 className="spinner" size={32} style={{ color: 'var(--color-primary)' }} />
-            <span style={{ marginLeft: '0.75rem', color: 'var(--color-text-secondary)' }}>Loading your complaints…</span>
+            <span style={{ marginLeft: '0.75rem', color: 'var(--color-text-secondary)' }}>Loading your complaints &amp; alerts…</span>
           </div>
         )}
 
@@ -148,7 +171,7 @@ export default function MyReportsPage() {
             <FileText size={48} />
             <p>
               {reports.length === 0 
-                ? "You haven't submitted any complaints yet." 
+                ? "You haven't submitted any complaints or dead animal alerts yet." 
                 : "No complaints found matching your search criteria."}
             </p>
           </div>
@@ -160,20 +183,66 @@ export default function MyReportsPage() {
                 key={report.id}
                 className="report-card"
                 id={`report-card-${report.id}`}
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '1.25rem',
+                  marginBottom: '1rem',
+                  background: '#fff',
+                  border: report.category.includes('Dead Animal') ? '2px solid #fca5a5' : '1px solid var(--color-border)',
+                  borderRadius: '10px',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.04)',
+                  textDecoration: 'none',
+                  color: 'inherit',
+                  transition: 'all 0.2s ease',
+                  cursor: 'pointer',
+                }}
               >
-                <div className="report-card__left">
-                  <div className="report-card__id">{report.id}</div>
-                  <div className="report-card__category">{report.category}</div>
-                  <div className="report-card__location">📍 {report.location}</div>
-                  <div className="report-card__date">
+                <div className="report-card__left" style={{ flex: 1, paddingRight: '1rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                    <span className="report-card__id" style={{ fontFamily: 'monospace', fontWeight: 700, color: '#334155', background: '#f1f5f9', padding: '2px 6px', borderRadius: 4, fontSize: '0.8rem' }}>
+                      {report.id}
+                    </span>
+                    <span className="report-card__category" style={{ fontWeight: 700, color: report.category.includes('Dead Animal') ? '#b91c1c' : '#2563eb', fontSize: '0.9rem' }}>
+                      {report.category}
+                    </span>
+                  </div>
+
+                  <div style={{ fontSize: '0.9rem', color: '#1e293b', marginBottom: 4, fontWeight: 500 }}>
+                    {report.description}
+                  </div>
+
+                  <div className="report-card__location" style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: 4 }}>
+                    📍 {report.location}
+                  </div>
+
+                  {report.assigned_driver && (
+                    <div style={{ fontSize: '0.8rem', color: '#15803d', fontWeight: 600, marginTop: 2 }}>
+                      🚛 Sanitation Team Assigned: {report.assigned_driver}
+                    </div>
+                  )}
+
+                  <div className="report-card__date" style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: 4 }}>
                     Submitted: {report.submittedAt}
-                    {report.updatedAt && ` · Updated: ${report.updatedAt}`}
+                    {report.updatedAt && ` · Resolved: ${report.updatedAt}`}
                   </div>
                 </div>
-                <div className="report-card__right">
+
+                {report.image_url && (
+                  <div style={{ marginRight: '1rem' }}>
+                    <img
+                      src={report.image_url}
+                      alt="Complaint Photo"
+                      style={{ width: 64, height: 64, borderRadius: 8, objectFit: 'cover', border: '1px solid #e2e8f0' }}
+                    />
+                  </div>
+                )}
+
+                <div className="report-card__right" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
                   <StatusBadge status={report.status} />
                   <SeverityBadge severity={report.severity} />
-                  <ChevronRight size={18} className="report-card__arrow" />
+                  <ChevronRight size={18} style={{ color: '#94a3b8', marginTop: 4 }} />
                 </div>
               </Link>
             ))}
