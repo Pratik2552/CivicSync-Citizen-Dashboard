@@ -13,6 +13,11 @@ import MyReportsPage from './pages/MyReportsPage';
 import TrackReportPage from './pages/TrackReportPage';
 import ProfilePage from './pages/ProfilePage';
 import LoginPage from './pages/LoginPage';
+import ScanSmartBinPage from './pages/ScanSmartBinPage';
+import MyCarbonCardPage from './pages/MyCarbonCardPage'; // <-- Imported the new My Carbon Card page
+import ScanVehicleQRPage from './pages/ScanVehicleQRPage'; // <-- QR scan page
+import ReportDeadAnimalPage from './pages/ReportDeadAnimalPage'; // <-- Dead animal alert page
+import GreenRewardsPage from './pages/GreenRewardsPage'; // <-- Green Rewards information & policy page
 
 // Fallback environment variable for Google Client ID
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
@@ -53,8 +58,18 @@ export default function App() {
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/track/:reportId" element={<TrackReportPage />} />
                 <Route path="/live-tracking" element={<LiveTrackingPage />} />
+                
+                {/* QR Scan Route - Can be accessed by anyone (citizens) */}
+                <Route path="/citizen/scan" element={<ScanVehicleQRPage />} />
 
-                {/* Protected Citizen Routes */}
+                {/* Dead Animal Alert Complaint Route */}
+                <Route path="/report-dead-animal" element={<ReportDeadAnimalPage />} />
+
+                {/* Green Rewards Information & Redemption Guide Route */}
+                <Route path="/green-rewards" element={<GreenRewardsPage />} />
+                <Route path="/how-to-redeem" element={<GreenRewardsPage />} />
+
+                {/* Protected Citizen / Role-Based Routes */}
                 <Route
                   path="/report-issue"
                   element={
@@ -63,6 +78,27 @@ export default function App() {
                     </ProtectedRoute>
                   }
                 />
+                
+                {/* Scan Smart Bin Route */}
+                <Route
+                  path="/scan-bin"
+                  element={
+                    <ProtectedRoute>
+                      <ScanSmartBinPage />
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* My Carbon Card Route */}
+                <Route
+                  path="/my-carbon-card"
+                  element={
+                    <ProtectedRoute>
+                      <MyCarbonCardPage />
+                    </ProtectedRoute>
+                  }
+                />
+                
                 <Route
                   path="/my-reports"
                   element={

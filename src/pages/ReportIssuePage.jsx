@@ -31,11 +31,14 @@ export default function ReportIssuePage() {
   const [step, setStep] = useState(1); // 1=form, 2=success
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
-  const [aiResult, setAiResult] = useState(null);
+  const [verifyingImage, setVerifyingImage] = useState(false);
+  const [verificationData, setVerificationData] = useState(null);
+
   const [category, setCategory] = useState('');
   const [description, setDescription] = useState('');
   const [address, setAddress] = useState('');
   const [pinPosition, setPinPosition] = useState(null);
+  const [gpsSource, setGpsSource] = useState('USER_PIN');
   const [locLoading, setLocLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
@@ -44,13 +47,55 @@ export default function ReportIssuePage() {
 
   const severity = category ? (issueCategories.find(c => c.id === category)?.severity || 'Normal') : null;
 
-  const handleImageFile = (file) => {
+  // Background Image Verification Handler
+  const handleImageFile = async (file) => {
     if (!file) return;
+
     setImageFile(file);
     setSubmitError('');
-    const reader = new FileReader();
-    reader.onload = e => setImagePreview(e.target.result);
-    reader.readAsDataURL(file);
+    setVerifyingImage(true);
+    setVerificationData(null);
+
+    // 1. Immediate local thumbnail preview
+    const localUrl = URL.createObjectURL(file);
+    setImagePreview(localUrl);
+
+    // 2. Background image verification request
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const res = await api.verifyImage(formData);
+
+      if (res.success) {
+        setVerificationData(res.verification);
+
+        // Auto-select category if matched
+        const matchedCategory = issueCategories.find(
+          c => c.label.toLowerCase().includes((res.verification.category || '').toLowerCase()) ||
+               (res.verification.category || '').toLowerCase().includes(c.id.toLowerCase())
+        );
+        if (matchedCategory) {
+          setCategory(matchedCategory.id);
+        }
+
+        // Auto-detect location if EXIF GPS metadata exists
+        if (res.exifGps && res.exifGps.hasMetadataGps) {
+          const { latitude, longitude } = res.exifGps;
+          setPinPosition([latitude, longitude]);
+          setAddress(`GPS Photo Location (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`);
+          setGpsSource('EXIF_METADATA');
+        }
+      }
+    } catch (err) {
+      console.error('Image verification failed:', err);
+      const errMsg = err.data?.reason || err.message || 'The uploaded photo could not be verified. Please upload a clear image of waste.';
+      setSubmitError(errMsg);
+      setImagePreview(null);
+      setImageFile(null);
+    } finally {
+      setVerifyingImage(false);
+    }
   };
 
   const handleDrop = (e) => {
@@ -67,12 +112,13 @@ export default function ReportIssuePage() {
         const { latitude, longitude } = pos.coords;
         setPinPosition([latitude, longitude]);
         setAddress(`Detected Location (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`);
+        setGpsSource('USER_PIN');
         setLocLoading(false);
       },
       () => {
-        // Fallback to Pune center
         setPinPosition([18.5204, 73.8567]);
         setAddress('Shivajinagar, Pune (approximate)');
+        setGpsSource('USER_PIN');
         setLocLoading(false);
       },
       { timeout: 6000 }
@@ -85,6 +131,10 @@ export default function ReportIssuePage() {
       setSubmitError('Please upload a photo of the waste site.');
       return;
     }
+    if (verifyingImage) {
+      setSubmitError('Please wait for photo analysis to complete.');
+      return;
+    }
     if (!address && !pinPosition) {
       setSubmitError('Please select or detect a location for the problem.');
       return;
@@ -94,30 +144,26 @@ export default function ReportIssuePage() {
     setSubmitError('');
 
     try {
+      const lat = pinPosition ? pinPosition[0] : 18.5204;
+      const lng = pinPosition ? pinPosition[1] : 73.8567;
+
       const formData = new FormData();
       formData.append('image', imageFile);
       formData.append('description', description);
-      
-      if (pinPosition) {
-        formData.append('latitude', pinPosition[0]);
-        formData.append('longitude', pinPosition[1]);
-      } else {
-        // Fallback default coordinates if user typed raw address text without map pin
-        formData.append('latitude', '18.5204');
-        formData.append('longitude', '73.8567');
+      formData.append('category', issueCategories.find(c => c.id === category)?.label || 'Roadside Litter');
+      formData.append('latitude', lat);
+      formData.append('longitude', lng);
+      formData.append('gps_source', gpsSource);
+
+      if (verificationData) {
+        formData.append('ai_confidence', verificationData.confidence || 0.95);
+        formData.append('ai_reason', verificationData.reason || 'Verified waste');
       }
 
       const response = await api.submitComplaint(formData);
 
       if (response.success && response.complaint) {
         setReferenceId(response.complaint.id);
-        if (response.complaint.category || response.complaint.ai_reason) {
-          setAiResult({
-            label: response.complaint.category || 'Verified Waste',
-            confidence: Math.round((response.complaint.ai_confidence || 0.95) * 100),
-            reason: response.complaint.ai_reason
-          });
-        }
         setStep(2);
       }
     } catch (err) {
@@ -158,7 +204,17 @@ export default function ReportIssuePage() {
             <button
               className="btn btn-secondary"
               id="report-another-btn"
-              onClick={() => { setStep(1); setImageFile(null); setImagePreview(null); setCategory(''); setDescription(''); setAddress(''); setPinPosition(null); setAiResult(null); setSubmitError(''); }}
+              onClick={() => {
+                setStep(1);
+                setImageFile(null);
+                setImagePreview(null);
+                setCategory('');
+                setDescription('');
+                setAddress('');
+                setPinPosition(null);
+                setVerificationData(null);
+                setSubmitError('');
+              }}
             >
               Report Another Issue
             </button>
@@ -220,22 +276,25 @@ export default function ReportIssuePage() {
                 <button
                   type="button"
                   className="upload-preview__remove"
-                  onClick={() => { setImagePreview(null); setImageFile(null); setAiResult(null); }}
+                  onClick={() => {
+                    setImagePreview(null);
+                    setImageFile(null);
+                    setVerificationData(null);
+                  }}
                   aria-label="Remove photo"
                 >
                   <X size={16} />
                 </button>
-                {aiResult && (
-                  <div className="ai-result" id="ai-classification-result">
-                    <span className="ai-result__label">📷 AI Classification:</span>
-                    <span className="ai-result__value">{aiResult.label}</span>
-                    <span className="ai-result__confidence">{aiResult.confidence}% confidence</span>
-                  </div>
-                )}
-                {submitting && !aiResult && (
-                  <div className="ai-result ai-result--loading">
-                    <span className="spinner" style={{ width: 16, height: 16, margin: 0, borderWidth: 2 }} />
-                    <span>Verifying image with AI Vision…</span>
+
+                {/* Processing Progress Bar */}
+                {verifyingImage && (
+                  <div className="upload-progress-wrap" style={{ marginTop: 12 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--color-text-secondary, #666)', marginBottom: 4 }}>
+                      <span>Processing image...</span>
+                    </div>
+                    <div className="loading-bar-track" style={{ height: 4, background: 'var(--color-border, #e5e7eb)', borderRadius: 2, overflow: 'hidden' }}>
+                      <div className="loading-bar-pulse" style={{ height: '100%', background: 'var(--color-primary, #16a34a)', animation: 'progressPulse 1.2s infinite ease-in-out' }} />
+                    </div>
                   </div>
                 )}
               </div>
@@ -308,8 +367,11 @@ export default function ReportIssuePage() {
                   scrollWheelZoom={false}
                   id="location-picker-map"
                 >
-                  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                  <DraggableMarker position={pinPosition} setPosition={pos => { setPinPosition(pos); setAddress(`${pos[0].toFixed(5)}, ${pos[1].toFixed(5)}`); }} />
+                  <TileLayer
+                    url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                    attribution="Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
+                  />
+                  <DraggableMarker position={pinPosition} setPosition={pos => { setPinPosition(pos); setAddress(`${pos[0].toFixed(5)}, ${pos[1].toFixed(5)}`); setGpsSource('USER_PIN'); }} />
                 </MapContainer>
                 <p className="form-hint" style={{ marginTop: 6 }}>
                   <MapPin size={13} style={{ display: 'inline' }} /> Drag the pin to adjust the exact location.
@@ -371,12 +433,12 @@ export default function ReportIssuePage() {
               type="submit"
               className="btn btn-primary btn-lg btn-full"
               id="submit-report-btn"
-              disabled={!category || !address || !imageFile || submitting}
+              disabled={!category || !address || !imageFile || submitting || verifyingImage}
             >
               {submitting ? (
                 <>
                   <span className="spinner" style={{ width: 18, height: 18, margin: 0, borderWidth: 2 }} />
-                  Verifying & Submitting…
+                  Submitting Complaint…
                 </>
               ) : (
                 'Submit Complaint'

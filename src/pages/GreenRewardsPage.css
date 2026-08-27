@@ -1,0 +1,717 @@
+/* GreenRewardsPage.css - Native Citizen Dashboard Styling */
+
+.gr-page-layout {
+  padding-top: var(--space-8, 2rem);
+  padding-bottom: var(--space-12, 3rem);
+  background: var(--color-bg, #f8fafc);
+  min-height: 100vh;
+  font-family: inherit;
+  color: var(--color-text-primary, #0f172a);
+}
+
+/* Page Header (Matches MyReportsPage / ReportIssuePage / MyCarbonCardPage) */
+.gr-page-header {
+  margin-bottom: var(--space-8, 2rem);
+}
+
+.gr-header-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+
+.gr-page-title {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--color-primary-dark, #0f172a);
+  line-height: 1.2;
+  margin: 0 0 10px 0;
+}
+
+.gr-title-highlight {
+  color: var(--color-primary, #2563eb);
+}
+
+.gr-page-subtitle {
+  font-size: 0.98rem;
+  color: var(--color-text-secondary, #475569);
+  max-width: 820px;
+  line-height: 1.6;
+  margin: 0 0 20px 0;
+}
+
+.gr-header-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.gr-header-actions .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Section Header */
+.gr-section-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 18px;
+  border-bottom: 2px solid var(--color-border-light, #e2e8f0);
+  padding-bottom: 12px;
+}
+
+.gr-section-num {
+  width: 36px;
+  height: 36px;
+  background: var(--color-primary-dark, #0f172a);
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 0.88rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.gr-section-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--color-primary-dark, #0f172a);
+  margin: 0;
+}
+
+.gr-section-desc {
+  font-size: 0.85rem;
+  color: var(--color-text-muted, #64748b);
+  margin: 2px 0 0 0;
+}
+
+/* Content Stack */
+.gr-content-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8, 2.5rem);
+}
+
+.gr-section {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Cards (Matches Native Citizen Cards) */
+.gr-card {
+  background: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-border-light, #e2e8f0);
+  border-radius: var(--radius-lg, 12px);
+  padding: 22px;
+  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05));
+}
+
+.gr-border-left-green {
+  border-left: 4px solid #16a34a;
+}
+
+.gr-lead-text {
+  font-size: 1.02rem;
+  line-height: 1.65;
+  color: var(--color-text-primary, #0f172a);
+  margin: 0 0 10px 0;
+}
+
+.gr-body-text {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--color-text-secondary, #475569);
+  margin: 0;
+}
+
+.gr-body-sub {
+  font-size: 0.82rem;
+  color: var(--color-text-muted, #64748b);
+  margin: 4px 0 0 0;
+}
+
+/* Callouts */
+.gr-info-callout {
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin-top: 16px;
+  font-size: 0.85rem;
+  color: #0369a1;
+  line-height: 1.6;
+}
+
+.gr-callout-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.gr-callout-icon {
+  color: #0284c7;
+}
+
+.gr-warning-callout {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin-top: 16px;
+  font-size: 0.85rem;
+  color: #9a3412;
+  line-height: 1.6;
+}
+
+.gr-warning-icon {
+  color: #ea580c;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* Grids */
+.gr-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.gr-grid-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.gr-grid-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+/* Rule Card */
+.gr-rule-card {
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.gr-rule-card:hover {
+  border-color: var(--color-primary-light, #3b82f6);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+
+.gr-rule-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.gr-icon-badge {
+  width: 40px;
+  height: 40px;
+  background: #ecfdf5;
+  color: #059669;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gr-card-title {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--color-primary-dark, #0f172a);
+  margin: 0 0 4px 0;
+}
+
+.gr-card-sub {
+  font-size: 0.82rem;
+  color: var(--color-text-muted, #64748b);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Balance Widget */
+.gr-balance-widget {
+  text-align: center;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--color-border-light, #e2e8f0);
+}
+
+.gr-widget-label {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--color-text-muted, #64748b);
+  letter-spacing: 0.8px;
+}
+
+.gr-widget-points {
+  font-size: 2.3rem;
+  font-weight: 900;
+  color: var(--color-primary-dark, #0f172a);
+  margin: 2px 0;
+}
+
+.gr-widget-sub {
+  font-size: 0.78rem;
+  color: var(--color-text-muted, #64748b);
+}
+
+/* Choice Card */
+.gr-choice-card {
+  border-top: 3px solid var(--accent-color);
+}
+
+.gr-choice-icon-box {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.gr-example-box {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+}
+
+.gr-example-header {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #166534;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 8px 0;
+}
+
+/* Service Card */
+.gr-service-card {
+  border-top: 3px solid var(--accent-color);
+}
+
+.gr-service-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.gr-service-icon-box {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.gr-service-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.83rem;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 10px;
+}
+
+.gr-service-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.gr-service-row span {
+  color: var(--color-text-muted, #64748b);
+}
+
+.gr-service-row strong {
+  color: var(--color-text-primary, #0f172a);
+}
+
+/* Policy Card */
+.gr-policy-card {
+  text-align: center;
+}
+
+.gr-policy-tag {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--color-text-muted, #64748b);
+  letter-spacing: 0.5px;
+}
+
+.gr-policy-val {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin: 6px 0;
+}
+
+/* Pipeline Container */
+.gr-pipeline-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+}
+
+.gr-pipeline-step {
+  background: var(--color-bg, #f8fafc);
+  border: 1px solid var(--color-border-light, #e2e8f0);
+  border-radius: 8px;
+  padding: 14px 10px;
+  text-align: center;
+  flex: 1;
+  min-width: 120px;
+}
+
+.gr-step-badge {
+  width: 24px;
+  height: 24px;
+  background: var(--color-primary, #2563eb);
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 800;
+  border-radius: 50%;
+  margin: 0 auto 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gr-step-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-primary-dark, #0f172a);
+}
+
+.gr-step-desc {
+  font-size: 0.7rem;
+  color: var(--color-text-muted, #64748b);
+  margin-top: 2px;
+}
+
+.gr-pipeline-arrow {
+  color: var(--color-primary, #2563eb);
+  font-weight: 900;
+  font-size: 1.1rem;
+}
+
+.gr-pipeline-box {
+  background: var(--color-bg, #f8fafc);
+  border: 1px solid var(--color-border-light, #e2e8f0);
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+  flex: 1;
+  min-width: 110px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--color-primary-dark, #0f172a);
+}
+
+/* Formula Banner */
+.gr-formula-banner {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+  margin-top: 20px;
+}
+
+.gr-formula-tag {
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #1e40af;
+  letter-spacing: 0.8px;
+}
+
+.gr-formula-calc {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #1e3a8a;
+  margin-top: 4px;
+}
+
+/* Table Header Banner */
+.gr-table-header-banner {
+  background: #fff7ed;
+  color: #9a3412;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 8px 16px;
+  border-bottom: 1px solid #fed7aa;
+  text-transform: uppercase;
+}
+
+/* Table Styling */
+.gr-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+}
+
+.gr-table th {
+  background: var(--color-primary-dark, #0f172a);
+  color: #ffffff;
+  font-weight: 700;
+  text-align: left;
+  padding: 12px 16px;
+}
+
+.gr-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--color-border-light, #e2e8f0);
+  color: var(--color-text-primary, #0f172a);
+}
+
+.gr-table tr:last-child td {
+  border-bottom: none;
+}
+
+.gr-td-bold {
+  font-weight: 700;
+  color: var(--color-primary-dark, #0f172a);
+}
+
+.gr-td-amount {
+  text-align: right;
+  font-weight: 700;
+}
+
+.gr-tr-accent { background: #fff7ed; }
+.gr-tr-green { background: #f0fdf4; }
+.gr-txt-accent { color: #ea580c; }
+.gr-txt-green { color: #16a34a; }
+.gr-txt-danger { color: #dc2626; }
+
+.gr-td-sub {
+  font-size: 0.8rem;
+  color: var(--color-text-muted, #64748b);
+}
+
+/* Benefit Example Card */
+.gr-bcard-header {
+  background: var(--color-bg, #f8fafc);
+  border-bottom: 1px solid var(--color-border-light, #e2e8f0);
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.gr-bcard-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  color: var(--color-primary-dark, #0f172a);
+}
+
+.gr-bcard-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.85rem;
+}
+
+.gr-bcard-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.gr-bcard-row span { color: var(--color-text-muted, #64748b); }
+.gr-bcard-row strong { color: var(--color-text-primary, #0f172a); }
+.gr-bcard-discount strong { color: #16a34a; }
+
+.gr-bcard-divider {
+  height: 1px;
+  background: var(--color-border-light, #e2e8f0);
+  margin: 2px 0;
+}
+
+.gr-bcard-final strong {
+  font-size: 1rem;
+  color: var(--color-primary-dark, #0f172a);
+}
+
+/* FAQ Item */
+.gr-faq-item {
+  border-bottom: 1px solid var(--color-border-light, #e2e8f0);
+}
+
+.gr-faq-item:last-child {
+  border-bottom: none;
+}
+
+.gr-faq-btn {
+  width: 100%;
+  background: transparent;
+  border: none;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--color-primary-dark, #0f172a);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.gr-faq-btn:hover {
+  background: var(--color-bg, #f8fafc);
+}
+
+.gr-faq-icon {
+  color: var(--color-primary, #2563eb);
+  flex-shrink: 0;
+}
+
+.gr-faq-chevron {
+  margin-left: auto;
+  color: var(--color-text-muted, #64748b);
+  transition: transform 0.2s;
+}
+
+.gr-faq-chevron.rotate {
+  transform: rotate(180deg);
+}
+
+.gr-faq-body {
+  padding: 0 20px 16px 48px;
+  font-size: 0.86rem;
+  line-height: 1.6;
+  color: var(--color-text-secondary, #475569);
+}
+
+/* Disclaimer Box */
+.gr-disclaimer-box {
+  background: #fffbf0;
+  border: 1px solid #fde68a;
+}
+
+.gr-disclaimer-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #b45309;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.gr-disclaimer-box p {
+  font-size: 0.83rem;
+  line-height: 1.6;
+  color: #78350f;
+  margin: 0;
+}
+
+/* Calculator Box */
+.gr-calc-card {
+  border-top: 3px solid #7c3aed;
+}
+
+.gr-calc-header {
+  margin-bottom: 16px;
+}
+
+.gr-calc-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--color-primary-dark, #0f172a);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 4px 0;
+}
+
+.gr-calc-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--color-bg, #f8fafc);
+  border: 1px solid var(--color-border-light, #e2e8f0);
+  border-radius: 8px;
+  padding: 12px 16px;
+}
+
+.gr-cstat-label {
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: var(--color-text-muted, #64748b);
+  letter-spacing: 0.5px;
+  display: block;
+}
+
+.gr-cstat-val {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--color-primary-dark, #0f172a);
+}
+
+.gr-field-box {
+  border: 1px solid var(--color-border-light, #e2e8f0);
+  border-radius: 8px;
+  padding: 12px;
+  background: #ffffff;
+}
+
+.gr-field-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.gr-field-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-primary-dark, #0f172a);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.gr-field-input {
+  width: 100%;
+  font-weight: 700;
+  color: var(--color-primary-dark, #0f172a);
+}
+
+.gr-field-hint {
+  font-size: 0.7rem;
+  color: var(--color-text-muted, #64748b);
+  display: block;
+  margin-top: 4px;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .gr-page-title { font-size: 1.8rem; }
+  .gr-grid-2, .gr-grid-3 { grid-template-columns: 1fr; }
+  .gr-pipeline-container { flex-direction: column; }
+  .gr-pipeline-arrow { transform: rotate(90deg); }
+}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Menu, X, ChevronDown, User, LogOut, Bell } from 'lucide-react';
+import { Menu, X, ChevronDown, User, LogOut, Bell, QrCode, Award, Coins } from 'lucide-react';
 import './Navbar.css';
 
 export default function Navbar() {
@@ -32,6 +32,9 @@ export default function Navbar() {
   const navLinks = [
     { to: '/', label: 'Home' },
     { to: '/report-issue', label: 'Report an Issue' },
+    { to: '/scan-bin', label: 'Scan Smart Bin' },
+    { to: '/my-carbon-card', label: 'My Carbon Card' },
+    { to: '/green-rewards', label: 'How to Redeem' },
     { to: '/my-reports', label: 'My Reports' },
   ];
 
@@ -65,6 +68,10 @@ export default function Navbar() {
                 `navbar__link ${isActive ? 'navbar__link--active' : ''}`
               }
             >
+              {/* Add small icons next to specific links for emphasis */}
+              {link.to === '/scan-bin' && <QrCode size={16} style={{ marginRight: '6px', marginBottom: '-3px' }} />}
+              {link.to === '/my-carbon-card' && <Award size={16} style={{ marginRight: '6px', marginBottom: '-3px' }} />}
+              {link.to === '/green-rewards' && <Coins size={16} style={{ marginRight: '6px', marginBottom: '-3px' }} />}
               {link.label}
             </NavLink>
           ))}
@@ -157,6 +164,9 @@ export default function Navbar() {
               }
               onClick={() => setMenuOpen(false)}
             >
+              {link.to === '/scan-bin' && <QrCode size={16} style={{ marginRight: '8px', marginBottom: '-3px' }} />}
+              {link.to === '/my-carbon-card' && <Award size={16} style={{ marginRight: '8px', marginBottom: '-3px' }} />}
+              {link.to === '/green-rewards' && <Coins size={16} style={{ marginRight: '8px', marginBottom: '-3px' }} />}
               {link.label}
             </NavLink>
           ))}
