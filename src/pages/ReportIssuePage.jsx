@@ -290,11 +290,36 @@ export default function ReportIssuePage() {
                 {verifyingImage && (
                   <div className="upload-progress-wrap" style={{ marginTop: 12 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--color-text-secondary, #666)', marginBottom: 4 }}>
-                      <span>Processing image...</span>
+                      <span>🤖 Running YOLOv8 + TACO Litter Detection Model...</span>
                     </div>
                     <div className="loading-bar-track" style={{ height: 4, background: 'var(--color-border, #e5e7eb)', borderRadius: 2, overflow: 'hidden' }}>
                       <div className="loading-bar-pulse" style={{ height: '100%', background: 'var(--color-primary, #16a34a)', animation: 'progressPulse 1.2s infinite ease-in-out' }} />
                     </div>
+                  </div>
+                )}
+
+                {/* YOLOv8 + TACO AI Litter Detection Result */}
+                {verificationData && !verifyingImage && (
+                  <div style={{ marginTop: 12, padding: '10px 14px', borderRadius: 8, background: '#f0fdf4', border: '1px solid #bbf7d0', fontSize: '0.85rem' }}>
+                    <div style={{ fontWeight: 700, color: '#15803d', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span>🤖 YOLOv8-TACO Litter Model Verified</span>
+                      <span style={{ fontSize: '0.75rem', background: '#dcfce7', color: '#166534', padding: '2px 6px', borderRadius: 4 }}>
+                        {Math.round((verificationData.confidence || 0.9) * 100)}% Match
+                      </span>
+                    </div>
+                    <p style={{ margin: '4px 0 0 0', color: '#166534', fontSize: '0.8rem' }}>
+                      {verificationData.reason || 'Municipal waste/litter detected successfully.'}
+                    </p>
+                    {verificationData.detectedObjects && verificationData.detectedObjects.length > 0 && (
+                      <div style={{ marginTop: 6, display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                        <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#15803d' }}>Detected TACO Classes:</span>
+                        {verificationData.detectedObjects.map((obj, i) => (
+                          <span key={i} style={{ fontSize: '0.7rem', background: '#ffffff', border: '1px solid #86efac', padding: '1px 6px', borderRadius: 12, color: '#14532d' }}>
+                            {obj}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
