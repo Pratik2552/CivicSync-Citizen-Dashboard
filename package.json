@@ -15,6 +15,7 @@
     "exifreader": "^4.44.0",
     "html2canvas": "^1.4.1",
     "html5-qrcode": "^2.3.8",
+    "jsqr": "^1.4.0",
     "leaflet": "^1.9.4",
     "lucide-react": "^1.31.0",
     "qrcode": "^1.5.4",

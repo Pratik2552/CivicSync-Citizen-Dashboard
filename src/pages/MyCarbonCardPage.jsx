@@ -41,6 +41,11 @@ export default function MyCarbonCardPage() {
   const [claimSuccess, setClaimSuccess] = useState(null);
   const [claimError, setClaimError] = useState('');
 
+  // Tax Wallet lock/release state
+  const [walletLockInput, setWalletLockInput] = useState(50);
+  const [walletActionLoading, setWalletActionLoading] = useState(false);
+  const [walletMsg, setWalletMsg] = useState({ text: '', type: '' });
+
   const cardRef = useRef(null);
 
   useEffect(() => {
@@ -147,6 +152,36 @@ export default function MyCarbonCardPage() {
       setClaimError(err.message || 'Failed to redeem carbon points.');
     } finally {
       setClaiming(false);
+    }
+  };
+
+  // Tax Wallet Lock Handler
+  const handleLockTaxWallet = async () => {
+    setWalletActionLoading(true);
+    setWalletMsg({ text: '', type: '' });
+    try {
+      const res = await api.lockTaxWallet(walletLockInput);
+      setWalletMsg({ text: res.message, type: 'success' });
+      fetchPoints();
+    } catch (err) {
+      setWalletMsg({ text: err.message || 'Failed to lock points into Tax Wallet.', type: 'error' });
+    } finally {
+      setWalletActionLoading(false);
+    }
+  };
+
+  // Tax Wallet Release Handler
+  const handleReleaseTaxWallet = async () => {
+    setWalletActionLoading(true);
+    setWalletMsg({ text: '', type: '' });
+    try {
+      const res = await api.releaseTaxWallet();
+      setWalletMsg({ text: res.message, type: 'success' });
+      fetchPoints();
+    } catch (err) {
+      setWalletMsg({ text: err.message || 'Failed to release points from Tax Wallet.', type: 'error' });
+    } finally {
+      setWalletActionLoading(false);
     }
   };
 
@@ -285,6 +320,82 @@ export default function MyCarbonCardPage() {
                   >
                     <Ticket size={16} /> Claim Benefit on Bill
                   </button>
+                </div>
+
+                {/* 🔒 Annual Tax Wallet & 2-Month Expiry Management Section */}
+                <div className="card" style={{ marginTop: '1.5rem', padding: '1.5rem', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 12 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                    <h3 style={{ fontSize: '1.05rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8, color: '#166534', margin: 0 }}>
+                      <Lock color="#16a34a" size={20} /> Annual Municipal Tax Wallet ({data.tax_wallet_points || 0} / {data.wallet_cap || 250} Pts)
+                    </h3>
+                    <span className={`badge ${data.is_wallet_locked ? 'badge-warning' : 'badge-success'}`}>
+                      {data.is_wallet_locked ? '🔒 Locked at Cap Limit' : '🔓 Wallet Active'}
+                    </span>
+                  </div>
+
+                  <p style={{ fontSize: '0.85rem', color: '#14532d', marginBottom: 12 }}>
+                    Property &amp; Water Taxes are billed annually. Points saved in your <strong>Tax Wallet</strong> are <strong>protected from the 2-month expiry cycle</strong> and reserved for your annual tax bill rebates!
+                  </p>
+
+                  {walletMsg.text && (
+                    <div style={{ marginBottom: 12, padding: '8px 12px', borderRadius: 6, fontSize: '0.85rem', background: walletMsg.type === 'success' ? '#dcfce7' : '#fef2f2', color: walletMsg.type === 'success' ? '#166534' : '#991b1b', border: `1px solid ${walletMsg.type === 'success' ? '#86efac' : '#fca5a5'}` }}>
+                      {walletMsg.text}
+                    </div>
+                  )}
+
+                  <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', gap: 8, flex: 1, minWidth: 240 }}>
+                      <input
+                        type="number"
+                        min="1"
+                        max={data.available_points || 100}
+                        value={walletLockInput}
+                        onChange={e => setWalletLockInput(Number(e.target.value))}
+                        disabled={data.is_wallet_locked || walletActionLoading}
+                        className="form-input"
+                        placeholder="Points to lock..."
+                        style={{ background: '#fff' }}
+                      />
+                      <button
+                        onClick={handleLockTaxWallet}
+                        disabled={data.is_wallet_locked || walletActionLoading || !data.available_points}
+                        className="btn btn-primary btn-sm"
+                        style={{ background: '#16a34a', border: 'none', whiteSpace: 'nowrap' }}
+                      >
+                        {walletActionLoading ? 'Locking...' : '🔒 Save into Wallet'}
+                      </button>
+                    </div>
+
+                    {data.tax_wallet_points > 0 && (
+                      <button
+                        onClick={handleReleaseTaxWallet}
+                        disabled={walletActionLoading}
+                        className="btn btn-outline btn-sm"
+                        style={{ borderColor: '#16a34a', color: '#15803d', whiteSpace: 'nowrap' }}
+                      >
+                        🔓 Release Points
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* 🏛️ Test Govt Utility Payment Simulator Link */}
+                <div style={{ marginTop: '1.25rem', background: '#eff6ff', border: '1px dashed #3b82f6', borderRadius: 10, padding: '1rem 1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <strong style={{ color: '#1e40af', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      🏛️ Test External Govt Utility Portal Integration
+                    </strong>
+                    <span style={{ fontSize: '0.8rem', color: '#1d4ed8', display: 'block', marginTop: 2 }}>
+                      Test claiming points on Property Tax, Water Tax, Electricity, or Bus Pass on the simulated Govt Billing portal using your QR code or Card ID.
+                    </span>
+                  </div>
+                  <Link
+                    to="/utility-tax-discount-simulator"
+                    className="btn btn-primary btn-sm"
+                    style={{ background: '#2563eb', textDecoration: 'none', whiteSpace: 'nowrap', marginLeft: 12 }}
+                  >
+                    Open Govt Billing Simulator ➔
+                  </Link>
                 </div>
 
                 {/* 🏷️ Bill Payment Benefit Redemption Hub */}
