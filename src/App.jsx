@@ -19,6 +19,7 @@ import ScanVehicleQRPage from './pages/ScanVehicleQRPage'; // <-- QR scan page
 import ReportDeadAnimalPage from './pages/ReportDeadAnimalPage'; // <-- Dead animal alert page
 import GreenRewardsPage from './pages/GreenRewardsPage'; // <-- Green Rewards information & policy page
 import UtilityDiscountSimulator from './pages/UtilityDiscountSimulator'; // <-- Municipal Govt Utility & Tax Billing Simulator page
+import EcoBazaarPage from './pages/EcoBazaarPage'; // <-- Best out of Waste Eco-Artisan Marketplace page
 
 // Fallback environment variable for Google Client ID
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
@@ -59,6 +60,9 @@ export default function App() {
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/track/:reportId" element={<TrackReportPage />} />
                 <Route path="/live-tracking" element={<LiveTrackingPage />} />
+                
+                {/* Eco Bazaar - Best Out of Waste Marketplace */}
+                <Route path="/eco-bazaar" element={<EcoBazaarPage />} />
                 
                 {/* External Govt Billing Simulator Route - Publicly Accessible for Testing */}
                 <Route path="/utility-tax-discount-simulator" element={<UtilityDiscountSimulator />} />
