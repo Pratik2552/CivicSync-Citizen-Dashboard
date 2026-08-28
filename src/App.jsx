@@ -18,6 +18,7 @@ import MyCarbonCardPage from './pages/MyCarbonCardPage'; // <-- Imported the new
 import ScanVehicleQRPage from './pages/ScanVehicleQRPage'; // <-- QR scan page
 import ReportDeadAnimalPage from './pages/ReportDeadAnimalPage'; // <-- Dead animal alert page
 import GreenRewardsPage from './pages/GreenRewardsPage'; // <-- Green Rewards information & policy page
+import UtilityDiscountSimulator from './pages/UtilityDiscountSimulator'; // <-- Municipal Govt Utility & Tax Billing Simulator page
 
 // Fallback environment variable for Google Client ID
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
@@ -58,6 +59,9 @@ export default function App() {
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/track/:reportId" element={<TrackReportPage />} />
                 <Route path="/live-tracking" element={<LiveTrackingPage />} />
+                
+                {/* External Govt Billing Simulator Route - Publicly Accessible for Testing */}
+                <Route path="/utility-tax-discount-simulator" element={<UtilityDiscountSimulator />} />
                 
                 {/* QR Scan Route - Can be accessed by anyone (citizens) */}
                 <Route path="/citizen/scan" element={<ScanVehicleQRPage />} />

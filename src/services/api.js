@@ -237,10 +237,34 @@ export const api = {
       body: JSON.stringify({ qr_payload: qrPayload }),
     }),
 
+  externalVerifyPayload: (payload) =>
+    request('/carbon-points/external-verify', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
   claimBenefit: (claimData) =>
     request('/carbon-points/claim-benefit', {
       method: 'POST',
       body: JSON.stringify(claimData),
+    }),
+
+  externalClaimDiscount: (claimData) =>
+    request('/carbon-points/claim-benefit', {
+      method: 'POST',
+      body: JSON.stringify(claimData),
+    }),
+
+  lockTaxWallet: (points) =>
+    request('/carbon-points/wallet/lock', {
+      method: 'POST',
+      body: JSON.stringify({ points }),
+    }),
+
+  releaseTaxWallet: (points) =>
+    request('/carbon-points/wallet/release', {
+      method: 'POST',
+      body: JSON.stringify({ points }),
     }),
 };
 
