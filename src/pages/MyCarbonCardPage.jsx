@@ -337,14 +337,8 @@ export default function MyCarbonCardPage() {
                   </div>
 
                   <p style={{ fontSize: '0.85rem', color: '#14532d', marginBottom: 12 }}>
-                    Property &amp; Water Taxes are billed annually. Points saved in your <strong>Tax Wallet</strong> are <strong>locked out of the spendable balance</strong> until you release them.
+                    Property &amp; Water Taxes are billed annually. Points saved in your <strong>Tax Wallet</strong> are <strong>protected from the 2-month expiry cycle</strong> and reserved for your annual tax bill rebates!
                   </p>
-
-                  {data.tax_wallet_points > 0 && (
-                    <div style={{ marginBottom: 12, padding: '10px 12px', borderRadius: 6, background: '#fff7ed', border: '1px solid #fdba74', color: '#9a3412', fontSize: '0.85rem' }}>
-                      {data.tax_wallet_points} points are currently locked in the annual wallet. Release them before locking another wallet amount.
-                    </div>
-                  )}
 
                   {walletMsg.text && (
                     <div style={{ marginBottom: 12, padding: '8px 12px', borderRadius: 6, fontSize: '0.85rem', background: walletMsg.type === 'success' ? '#dcfce7' : '#fef2f2', color: walletMsg.type === 'success' ? '#166534' : '#991b1b', border: `1px solid ${walletMsg.type === 'success' ? '#86efac' : '#fca5a5'}` }}>
@@ -367,7 +361,7 @@ export default function MyCarbonCardPage() {
                       />
                       <button
                         onClick={handleLockTaxWallet}
-                        disabled={data.is_wallet_locked || walletActionLoading || !data.available_points || data.tax_wallet_points > 0}
+                        disabled={data.is_wallet_locked || walletActionLoading || !data.available_points}
                         className="btn btn-primary btn-sm"
                         style={{ background: '#16a34a', border: 'none', whiteSpace: 'nowrap' }}
                       >
