@@ -260,23 +260,98 @@
 @media (max-width: 768px) {
   .scan-page {
     padding: 10px;
+    align-items: flex-start;
+  }
+
+  .scan-header {
+    padding: 20px 15px;
   }
 
   .scan-header h1 {
     font-size: 1.5rem;
   }
 
+  .vehicle-card {
+    padding: 12px;
+  }
+
+  .vehicle-card p {
+    font-size: 0.85rem;
+  }
+
   .scan-content {
-    padding: 20px;
+    padding: 20px 15px;
+  }
+
+  .location-status,
+  .camera-section {
+    padding: 15px;
+  }
+
+  .camera-preview,
+  .captured-image {
+    max-height: 300px;
+    border-radius: 8px;
   }
 
   .camera-controls,
   .photo-controls {
     flex-direction: column;
+    gap: 10px;
   }
 
   .btn-primary,
-  .btn-secondary {
+  .btn-secondary,
+  .file-upload-btn {
     width: 100%;
+    padding: 14px 20px;
+    font-size: 0.95rem;
+  }
+
+  .btn-large {
+    padding: 16px 20px;
+    font-size: 1rem;
+  }
+
+  .success-state,
+  .error-state,
+  .loading {
+    padding: 40px 20px;
+  }
+
+  .success-state h2,
+  .error-state h2 {
+    font-size: 1.4rem;
+  }
+
+  .success-icon,
+  .error-icon {
+    font-size: 3rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .scan-header h1 {
+    font-size: 1.3rem;
+  }
+
+  .vehicle-card p {
+    font-size: 0.8rem;
+  }
+
+  .scan-content {
+    padding: 15px 10px;
+  }
+
+  .location-status h3,
+  .camera-section h3 {
+    font-size: 1.1rem;
+  }
+
+  .btn-primary,
+  .btn-secondary,
+  .file-upload-btn {
+    padding: 12px 16px;
+    font-size: 0.9rem;
   }
 }
