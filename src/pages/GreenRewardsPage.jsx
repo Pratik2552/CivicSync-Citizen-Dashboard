@@ -256,9 +256,9 @@ export default function GreenRewardsPage() {
                   color="#2563eb"
                 />
                 <ChoiceCard
-                  icon={Zap}
-                  title="Use for Electricity"
-                  text="Redeem eligible points against approved monthly electricity bill adjustments."
+                  icon={Sparkles}
+                  title="Use for Eco Bazaar Discounts"
+                  text="Redeem eligible points for partner-store coupon codes and eco bazaar offers."
                   color="#f59e0b"
                 />
                 <ChoiceCard
@@ -273,7 +273,7 @@ export default function GreenRewardsPage() {
             <div className="card gr-card gr-example-box" style={{ marginTop: 16 }}>
               <h4 className="gr-example-header"><Sparkles size={16} /> Practical Allocation Example</h4>
               <p className="gr-body-text">
-                A citizen with <strong>300 available points</strong> may choose to use 100 points for public transportation, 50 points for an eligible electricity benefit, and lock the remaining 150 points for annual property tax.
+                A citizen with <strong>300 available points</strong> may choose to use 100 points for public transport, 50 points for an eco bazaar coupon, and lock the remaining 150 points for annual property tax.
               </p>
               <p className="gr-body-sub">
                 The allocation is determined by the citizen and is not automatically decided by CivicSync.
@@ -492,7 +492,7 @@ export default function GreenRewardsPage() {
             <div className="gr-grid gr-grid-3">
               <BenefitExampleCard
                 icon={Bus}
-                title="Bus Pass"
+                title="Transport Tax Rebate"
                 original="Rs. 800"
                 support="Rs. 50"
                 payable="Rs. 750"
@@ -500,12 +500,12 @@ export default function GreenRewardsPage() {
                 color="#2563eb"
               />
               <BenefitExampleCard
-                icon={Zap}
-                title="Electricity Bill"
+                icon={Sparkles}
+                title="Eco Bazaar Coupon"
                 original="Rs. 1,200"
                 support="Rs. 75"
                 payable="Rs. 1,125"
-                frequency="Monthly"
+                frequency="Anytime"
                 color="#f59e0b"
               />
               <BenefitExampleCard
@@ -725,8 +725,8 @@ function AllocationCalculator() {
           onChange={(v) => setTransport(Math.max(0, v))}
         />
         <AllocationField
-          label="Electricity Bill"
-          icon={Zap}
+          label="Eco Bazaar Coupon"
+          icon={Sparkles}
           value={electricity}
           onChange={(v) => setElectricity(Math.max(0, v))}
         />
