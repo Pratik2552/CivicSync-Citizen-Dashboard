@@ -6,8 +6,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="CivicSync — Smart Waste Management System. Report garbage problems, find nearby bins, and track your complaints with your local municipal corporation." />
     <meta name="keywords" content="waste management, garbage complaint, municipal corporation, bin location, CivicSync, civic services" />
-    <meta name="theme-color" content="#0f2347" />
+    <meta name="theme-color" content="#10b981" />
+    <link rel="manifest" href="/manifest.json" />
     <title>CivicSync — Smart Waste Management</title>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then(reg => console.log('Citizen Service Worker registered successfully:', reg))
+            .catch(err => console.error('Citizen Service Worker registration failed:', err));
+        });
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
