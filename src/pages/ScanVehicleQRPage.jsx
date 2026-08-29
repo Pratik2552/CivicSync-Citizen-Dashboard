@@ -153,15 +153,39 @@ export default function ScanVehicleQRPage() {
         return;
       }
 
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment', width: 1280, height: 720 },
+      const constraints = {
+        video: { 
+          facingMode: { exact: 'environment' },
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        },
         audio: false,
-      });
+      };
+
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
       
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         streamRef.current = stream;
-        console.log('Camera started successfully');
+        
+        // Force video to play immediately
+        try {
+          await videoRef.current.play();
+          console.log('Camera started and playing successfully');
+        } catch (playErr) {
+          console.error('Error playing video:', playErr);
+          // Try again after a short delay
+          setTimeout(async () => {
+            try {
+              if (videoRef.current) {
+                await videoRef.current.play();
+              }
+            } catch (retryPlayErr) {
+              console.error('Retry play error:', retryPlayErr);
+              setError('Unable to start video playback. Please try again.');
+            }
+          }, 100);
+        }
       }
     } catch (err) {
       console.error('Camera error:', err);
@@ -169,6 +193,29 @@ export default function ScanVehicleQRPage() {
         setError('Camera access denied. Please allow camera permissions in your browser settings.');
       } else if (err.name === 'NotFoundError') {
         setError('No camera found on your device.');
+      } else if (err.name === 'NotReadableError') {
+        setError('Camera is already in use by another application. Please close other apps and try again.');
+      } else if (err.name === 'OverconstrainedError') {
+        setError('Camera does not support the requested settings. Trying with default settings...');
+        // Retry with simpler constraints but still prefer back camera
+        try {
+          const simpleStream = await navigator.mediaDevices.getUserMedia({ 
+            video: { facingMode: 'environment' },
+            audio: false 
+          });
+          if (videoRef.current) {
+            videoRef.current.srcObject = simpleStream;
+            streamRef.current = simpleStream;
+            try {
+              await videoRef.current.play();
+              setError(''); // Clear error on success
+            } catch (playErr) {
+              console.error('Simple stream play error:', playErr);
+            }
+          }
+        } catch (retryErr) {
+          setError('Unable to access camera with any settings. Please check permissions.');
+        }
       } else {
         setError('Unable to access camera. Please check permissions and try again.');
       }
@@ -459,17 +506,18 @@ export default function ScanVehicleQRPage() {
               <>
                 <video
                   ref={videoRef}
-                  autoPlay
                   playsInline
                   muted
                   className="camera-preview"
                   style={{ 
                     width: '100%', 
                     maxWidth: '500px', 
+                    minHeight: '300px',
                     height: 'auto',
                     borderRadius: '8px',
                     backgroundColor: '#000',
-                    display: streamRef.current ? 'block' : 'none'
+                    display: streamRef.current ? 'block' : 'none',
+                    objectFit: 'cover'
                   }}
                 />
                 
@@ -495,7 +543,7 @@ export default function ScanVehicleQRPage() {
                 <div className="camera-controls">
                   {!streamRef.current ? (
                     <button onClick={startCamera} className="btn-secondary">
-                      📷 Start Camera
+                      📷 Start Back Camera
                     </button>
                   ) : (
                     <button onClick={stopCamera} className="btn-secondary">

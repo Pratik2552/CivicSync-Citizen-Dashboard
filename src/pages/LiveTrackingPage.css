@@ -55,3 +55,44 @@
 .driver-card__kv strong {
   color: #0f172a;
 }
+
+/* Mobile Responsive */
+@media (max-width: 900px) {
+  .lt-body {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .lt-sidebar {
+    order: -1;
+  }
+}
+
+@media (max-width: 768px) {
+  .driver-card {
+    padding: 0.85rem;
+  }
+  
+  .driver-card__header {
+    margin-bottom: 0.6rem;
+  }
+  
+  .driver-card__kv {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .lt-body {
+    gap: 0.8rem;
+  }
+  
+  .driver-card {
+    padding: 0.75rem;
+  }
+  
+  .driver-card__kv {
+    font-size: 0.75rem;
+    padding: 3px 0;
+  }
+}

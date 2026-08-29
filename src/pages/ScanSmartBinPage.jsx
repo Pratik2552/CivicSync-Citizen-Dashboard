@@ -27,7 +27,9 @@ export default function ScanSmartBinPage() {
     // Cleanup on unmount
     return () => {
       if (html5QrCode.isScanning) {
-        html5QrCode.stop().catch(console.error);
+        html5QrCode.stop().catch(err => {
+          console.error('Error stopping scanner on unmount:', err);
+        });
       }
     };
   }, []);
@@ -44,13 +46,31 @@ export default function ScanSmartBinPage() {
         await scanner.stop();
       }
 
+      // Enhanced configuration for better mobile support
+      const config = {
+        fps: 10,
+        qrbox: function(viewfinderWidth, viewfinderHeight) {
+          // Make QR box responsive to screen size
+          const minEdgePercentage = 0.7;
+          const minEdgeSize = Math.min(viewfinderWidth, viewfinderHeight);
+          const qrboxSize = Math.floor(minEdgeSize * minEdgePercentage);
+          return {
+            width: qrboxSize,
+            height: qrboxSize
+          };
+        },
+        aspectRatio: 1.0,
+        disableFlip: false,
+        videoConstraints: {
+          facingMode: mode,
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        }
+      };
+
       await scanner.start(
         { facingMode: mode },
-        {
-          fps: 10,
-          qrbox: { width: 250, height: 250 },
-          aspectRatio: 1.0
-        },
+        config,
         (decodedText) => {
           handleSuccessfulScan(decodedText);
         },
@@ -62,9 +82,45 @@ export default function ScanSmartBinPage() {
       setIsScanning(true);
       setCameraMode(mode);
     } catch (err) {
-      console.error(err);
-      setError('Could not access camera. Please allow camera permissions.');
-      setIsScanning(false);
+      console.error('Camera start error:', err);
+      
+      // Provide specific error messages
+      if (err.name === 'NotAllowedError' || err.message.includes('Permission')) {
+        setError('Camera access denied. Please allow camera permissions in your browser settings.');
+      } else if (err.name === 'NotFoundError' || err.message.includes('No camera')) {
+        setError('No camera found on your device.');
+      } else if (err.name === 'NotReadableError' || err.message.includes('in use')) {
+        setError('Camera is already in use by another application. Please close other apps and try again.');
+      } else if (err.message.includes('Overconstrained') || err.name === 'OverconstrainedError') {
+        // Try again with simpler constraints
+        setError('Trying alternative camera settings...');
+        try {
+          await scanner.start(
+            { facingMode: mode },
+            {
+              fps: 10,
+              qrbox: 250,
+              aspectRatio: 1.0
+            },
+            (decodedText) => {
+              handleSuccessfulScan(decodedText);
+            },
+            () => {}
+          );
+          setIsScanning(true);
+          setCameraMode(mode);
+          setError('');
+        } catch (retryErr) {
+          setError('Unable to start camera with available settings. Please try a different device or browser.');
+          setIsScanning(false);
+        }
+      } else {
+        setError('Could not access camera. Please check permissions and try again.');
+      }
+      
+      if (!scanner.isScanning) {
+        setIsScanning(false);
+      }
     }
   };
 
@@ -217,13 +273,13 @@ export default function ScanSmartBinPage() {
         
         {/* LEFT COLUMN: SCANNER UI */}
         <div className="track-main">
-          <div className="card" style={{ padding: '2rem', textAlign: 'center' }}>
+          <div className="card" style={{ padding: 'clamp(1rem, 4vw, 2rem)', textAlign: 'center' }}>
             
             <div style={{ marginBottom: '1.5rem' }}>
-              <h2 style={{ fontSize: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 8 }}>
+              <h2 style={{ fontSize: 'clamp(1.2rem, 5vw, 1.5rem)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
                 <QrCode color="var(--color-primary)" /> QR Scanner
               </h2>
-              <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.9rem' }}>
+              <p style={{ color: 'var(--color-text-secondary)', fontSize: 'clamp(0.8rem, 3vw, 0.9rem)' }}>
                 Position the QR code inside the frame or upload an image.
               </p>
             </div>
@@ -238,9 +294,9 @@ export default function ScanSmartBinPage() {
             {/* Success Message */}
             {scanResult && (
               <div style={{ padding: '1.5rem', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', marginBottom: '1.5rem' }}>
-                <CheckCircle size={40} color="#16a34a" style={{ margin: '0 auto 12px' }} />
-                <h3 style={{ color: '#166534', margin: '0 0 8px 0' }}>QR Code Scanned Successfully!</h3>
-                <code style={{ background: '#dcfce7', padding: '6px 12px', borderRadius: '4px', color: '#15803d', wordBreak: 'break-all' }}>
+                <CheckCircle size={40} color="#16a34a" style={{ margin: '0 auto 12px', display: 'block' }} />
+                <h3 style={{ color: '#166534', margin: '0 0 8px 0', fontSize: 'clamp(1rem, 4vw, 1.2rem)', textAlign: 'center' }}>QR Code Scanned Successfully!</h3>
+                <code style={{ background: '#dcfce7', padding: '6px 12px', borderRadius: '4px', color: '#15803d', wordBreak: 'break-all', display: 'block', fontSize: 'clamp(0.75rem, 3vw, 0.9rem)', textAlign: 'center', marginBottom: '1rem' }}>
                   {scanResult}
                 </code>
                 
@@ -248,12 +304,14 @@ export default function ScanSmartBinPage() {
                   className="btn btn-primary btn-lg btn-full mt-4" 
                   onClick={proceedWithScannedBin}
                   disabled={isProcessing}
+                  style={{ width: '100%', fontSize: 'clamp(0.9rem, 3.5vw, 1rem)' }}
                 >
                   {isProcessing ? 'Verifying...' : 'Proceed to Action'}
                 </button>
                 <button 
                   className="btn btn-secondary btn-full mt-2" 
                   onClick={() => setScanResult('')}
+                  style={{ width: '100%', fontSize: 'clamp(0.9rem, 3.5vw, 1rem)' }}
                 >
                   Scan Another Code
                 </button>
@@ -273,7 +331,8 @@ export default function ScanSmartBinPage() {
                   borderRadius: '12px', 
                   overflow: 'hidden',
                   border: '2px solid var(--color-border)',
-                  minHeight: isScanning ? '300px' : '0px'
+                  minHeight: isScanning ? '300px' : '0px',
+                  backgroundColor: '#000'
                 }}
               ></div>
 
@@ -281,15 +340,15 @@ export default function ScanSmartBinPage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '1.5rem', maxWidth: '400px', margin: '1.5rem auto 0' }}>
                 
                 {!isScanning ? (
-                  <button className="btn btn-primary btn-lg" onClick={() => startScanner('user')}>
-                    <Camera size={18} /> Open Front Camera
+                  <button className="btn btn-primary btn-lg" onClick={() => startScanner('environment')} style={{ width: '100%' }}>
+                    <Camera size={18} /> Open Camera
                   </button>
                 ) : (
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <button className="btn btn-secondary" style={{ flex: 1 }} onClick={toggleCamera}>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    <button className="btn btn-secondary" style={{ flex: '1 1 calc(50% - 4px)', minWidth: '120px' }} onClick={toggleCamera}>
                       <RefreshCcw size={18} /> Switch Camera
                     </button>
-                    <button className="btn btn-secondary" style={{ flex: 1, backgroundColor: '#fee2e2', color: '#dc2626', borderColor: '#fca5a5' }} onClick={stopScanner}>
+                    <button className="btn btn-secondary" style={{ flex: '1 1 calc(50% - 4px)', minWidth: '120px', backgroundColor: '#fee2e2', color: '#dc2626', borderColor: '#fca5a5' }} onClick={stopScanner}>
                       Stop Camera
                     </button>
                   </div>
@@ -305,6 +364,7 @@ export default function ScanSmartBinPage() {
                   type="button" 
                   className="btn btn-secondary btn-lg" 
                   onClick={() => fileInputRef.current.click()}
+                  style={{ width: '100%' }}
                 >
                   <UploadCloud size={18} /> Upload QR Image
                 </button>

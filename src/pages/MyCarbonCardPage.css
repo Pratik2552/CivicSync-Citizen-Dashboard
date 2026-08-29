@@ -186,3 +186,123 @@
 
 @keyframes spin { to { transform: rotate(360deg); } }
 .spin { animation: spin 1s linear infinite; display: inline-block; }
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .carbon-credit-card {
+    max-width: 100%;
+    padding: 1.2rem 1.4rem;
+  }
+  
+  .cc-brand {
+    font-size: 1rem;
+  }
+  
+  .cc-tier-badge {
+    font-size: 0.68rem;
+    padding: 3px 10px;
+  }
+  
+  .cc-body {
+    gap: 1rem;
+    margin-top: 0.8rem;
+  }
+  
+  .cc-qr-container {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .cc-value {
+    font-size: 1rem;
+  }
+  
+  .cc-value.points {
+    font-size: 1.4rem;
+  }
+  
+  .cc-footer {
+    margin-top: 0.8rem;
+  }
+  
+  .cc-id {
+    font-size: 0.95rem;
+    letter-spacing: 1px;
+  }
+  
+  .impact-grid {
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 0.8rem;
+  }
+  
+  .impact-card {
+    padding: 0.8rem;
+  }
+  
+  .impact-icon {
+    font-size: 1.5rem;
+  }
+  
+  .impact-value {
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .carbon-credit-card {
+    padding: 1rem 1.2rem;
+  }
+  
+  .cc-brand {
+    font-size: 0.9rem;
+    gap: 6px;
+  }
+  
+  .cc-tier-badge {
+    font-size: 0.62rem;
+    padding: 2px 8px;
+  }
+  
+  .cc-body {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .cc-qr-container {
+    width: 110px;
+    height: 110px;
+  }
+  
+  .cc-info {
+    align-items: center;
+    width: 100%;
+  }
+  
+  .cc-label {
+    font-size: 0.6rem;
+  }
+  
+  .cc-value {
+    font-size: 0.95rem;
+  }
+  
+  .cc-value.points {
+    font-size: 1.3rem;
+  }
+  
+  .cc-footer {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    text-align: center;
+  }
+  
+  .cc-id {
+    font-size: 0.85rem;
+  }
+  
+  .cc-date {
+    text-align: center;
+  }
+}
