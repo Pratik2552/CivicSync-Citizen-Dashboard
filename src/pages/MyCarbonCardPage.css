@@ -186,3 +186,44 @@
 
 @keyframes spin { to { transform: rotate(360deg); } }
 .spin { animation: spin 1s linear infinite; display: inline-block; }
+
+@media (max-width: 480px) {
+  .carbon-credit-card {
+    padding: 1rem 1.2rem;
+    aspect-ratio: auto;
+    min-height: 250px;
+    border-radius: 14px;
+  }
+
+  .cc-brand {
+    font-size: 1rem;
+  }
+
+  .cc-tier-badge {
+    padding: 2px 8px;
+    font-size: 0.65rem;
+  }
+
+  .cc-body {
+    gap: 0.8rem;
+    margin-top: 0.75rem;
+  }
+
+  .cc-qr-container {
+    width: 85px;
+    height: 85px;
+  }
+
+  .cc-value.points {
+    font-size: 1.25rem;
+  }
+
+  .cc-id {
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+  }
+
+  .cc-value {
+    font-size: 0.95rem;
+  }
+}

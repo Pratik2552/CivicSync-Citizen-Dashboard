@@ -1,11 +1,27 @@
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Search, ShoppingBag, MapPin, Star, Leaf, Recycle, ShieldCheck,
-  X, Phone, MessageCircle, Package, Sparkles, Filter, ChevronDown,
-  Heart, Share2, Award
+  Search, ShoppingBag, MapPin, Leaf, ShieldCheck, MessageCircle,
+  Heart, Award, Building2, BadgePercent, CreditCard, CheckCircle2, ArrowRight
 } from 'lucide-react';
 import './EcoBazaarPage.css';
+
+// Carbon Points rule: 1 point = ₹1 discount value, capped at 25% of order value.
+const POINT_VALUE_RUPEES = 1;
+const MAX_DISCOUNT_PERCENT = 25;
+const CITIZEN_CARBON_POINTS = 850; // Replace with backend/account balance when available.
+
+function calculateCarbonDiscount(orderTotal, availablePoints) {
+  const maxByPercent = Math.floor(orderTotal * (MAX_DISCOUNT_PERCENT / 100));
+  const maxByPoints = Math.floor(availablePoints * POINT_VALUE_RUPEES);
+  const discountAmount = Math.max(0, Math.min(maxByPercent, maxByPoints, orderTotal));
+  const pointsUsed = Math.ceil(discountAmount / POINT_VALUE_RUPEES);
+  return {
+    discountAmount,
+    pointsUsed,
+    payable: Math.max(0, orderTotal - discountAmount),
+  };
+}
 
 // ─── Artisan & Product Data ──────────────────────────────────────────────────
 // All products are made from waste/recycled materials by local artisans
@@ -262,6 +278,7 @@ export default function EcoBazaarPage() {
   const [ordered,   setOrdered]   = useState(false);
   const [orderRef,  setOrderRef]  = useState('');
   const [wishlist,  setWishlist]  = useState([]);
+  const [useCarbonPoints, setUseCarbonPoints] = useState(true);
 
   // ── Filtered + sorted products
   const visible = useMemo(() => {
@@ -297,6 +314,7 @@ export default function EcoBazaarPage() {
     setQty(1);
     setOrdered(false);
     setOrderRef('');
+    setUseCarbonPoints(true);
   };
 
   const closeBuy = () => {
@@ -321,9 +339,50 @@ export default function EcoBazaarPage() {
   };
 
   const totalCarbonSaved = PRODUCTS.reduce((s, p) => s + p.carbon_kg_saved, 0);
+  const orderTotal = selected ? selected.price * qty : 0;
+  const carbonDiscount = selected && useCarbonPoints
+    ? calculateCarbonDiscount(orderTotal, CITIZEN_CARBON_POINTS)
+    : { discountAmount: 0, pointsUsed: 0, payable: orderTotal };
 
   return (
     <>
+      <section className="eb-flow-strip">
+        <div className="eb-flow-strip__inner">
+          <div className="eb-flow-strip__heading">
+            <div>
+              <span className="eb-flow-strip__eyebrow">How Eco Bazaar Works</span>
+              <h2>NGO-listed electronics get a second life, while citizens get a fair Carbon Points benefit.</h2>
+            </div>
+            <div className="eb-flow-strip__rule">Maximum {MAX_DISCOUNT_PERCENT}% discount per order</div>
+          </div>
+
+          <div className="eb-flow">
+            {[
+              { icon: Building2, title: 'NGO Lists Item', text: 'Verified NGO lists tested or refurbished electronics.' },
+              { icon: ShieldCheck, title: 'CivicSync Publishes', text: 'Condition, price and stock are shown transparently.' },
+              { icon: ShoppingBag, title: 'Citizen Selects', text: 'Citizen chooses an item and quantity.' },
+              { icon: BadgePercent, title: 'Points Discount', text: 'Carbon Points reduce only part of the price.' },
+              { icon: CreditCard, title: 'Pay Balance', text: 'Citizen pays the remaining amount.' },
+              { icon: CheckCircle2, title: 'Points Deducted', text: 'Used points are deducted after purchase confirmation.' },
+            ].map((step, index, arr) => {
+              const Icon = step.icon;
+              return (
+                <React.Fragment key={step.title}>
+                  <div className="eb-flow__step">
+                    <div className="eb-flow__icon"><Icon size={20} /></div>
+                    <div>
+                      <strong>{step.title}</strong>
+                      <span>{step.text}</span>
+                    </div>
+                  </div>
+                  {index < arr.length - 1 && <ArrowRight className="eb-flow__arrow" size={18} />}
+                </React.Fragment>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
       {/* ── Hero Section ──────────────────────────────────────────────────────── */}
       <section className="eb-hero">
         <div className="eb-hero__inner">
@@ -333,8 +392,8 @@ export default function EcoBazaarPage() {
             </div>
             <h1 className="eb-hero__title">
               Eco Bazaar —<br />
-              <span>Best Out of Waste</span><br />
-              Artisan Marketplace
+              <span>Refurbished Electronics</span><br />
+              NGO Marketplace
             </h1>
             <p className="eb-hero__subtitle">
               Discover beautiful handcrafted products made entirely from recycled &amp; upcycled waste by Nashik's local eco-artisans and women self-help groups.
@@ -343,7 +402,7 @@ export default function EcoBazaarPage() {
             <div className="eb-hero__stats">
               <div className="eb-hero__stat">
                 <span className="eb-hero__stat-num">{ARTISANS.length}</span>
-                <span className="eb-hero__stat-lbl">Artisans</span>
+                <span className="eb-hero__stat-lbl">NGO Partners</span>
               </div>
               <div className="eb-hero__stat">
                 <span className="eb-hero__stat-num">{PRODUCTS.length}</span>
@@ -554,7 +613,7 @@ export default function EcoBazaarPage() {
                     <div className="eb-card__footer">
                       <div className="eb-card__price">
                         <span className="eb-card__price-main">₹{product.price}</span>
-                        <span className="eb-card__price-pts">= {product.pts_equiv} Carbon Pts value</span>
+                        <span className="eb-card__price-pts">Max 25% discount with Carbon Points</span>
                       </div>
                       <button
                         className="eb-card__buy-btn"
@@ -594,7 +653,7 @@ export default function EcoBazaarPage() {
           {[
             { icon: '♻️', title: '100% Waste Materials', desc: 'No virgin materials used in any product' },
             { icon: '👩‍🎨', title: 'Verified Artisans',  desc: 'All sellers are background-checked and trained' },
-            { icon: '🌿', title: 'Use Carbon Points',   desc: 'Pay partly or fully with your Green Card balance' },
+            { icon: '🌿', title: 'Use Carbon Points',   desc: 'Use Carbon Points for a controlled partial discount' },
           ].map((item, i) => (
             <div
               key={i}
@@ -683,7 +742,7 @@ export default function EcoBazaarPage() {
                 <h3 className="eb-order-success__title">Order Request Sent!</h3>
                 <p className="eb-order-success__msg">
                   Your order request for <strong>{qty}× {selected.name}</strong> has been sent to{' '}
-                  <strong>{getArtisan(selected.artisanId)?.name}</strong>. They will contact you within 24 hours to confirm delivery.
+                  <strong>{getArtisan(selected.artisanId)?.name}</strong>. They will contact you within 24 hours to confirm delivery. Carbon Points are deducted only after the purchase is confirmed.
                 </p>
                 <div className="eb-order-success__ref">Order Ref: {orderRef}</div>
                 <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
@@ -727,7 +786,7 @@ export default function EcoBazaarPage() {
                     <div className="eb-modal__price-left">
                       <span className="eb-modal__price-label">Unit Price</span>
                       <div className="eb-modal__price-val">₹{selected.price}</div>
-                      <div className="eb-modal__price-pts">= {selected.pts_equiv} Carbon Points value</div>
+                      <div className="eb-modal__price-pts">Max 25% discount with Carbon Points</div>
                     </div>
                     <div className="eb-modal__qty">
                       <span className="eb-modal__qty-label">Qty</span>
@@ -752,7 +811,7 @@ export default function EcoBazaarPage() {
                   {/* Carbon discount hint */}
                   <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 8, padding: '8px 12px', marginBottom: '1rem', fontSize: '0.78rem', color: '#15803d', display: 'flex', alignItems: 'center', gap: 6 }}>
                     <Leaf size={13} />
-                    <span>Have Carbon Points? <Link to="/my-carbon-card" style={{ color: '#15803d', fontWeight: 700 }}>Use them to get a discount</Link> on this purchase via your Green Card.</span>
+                    <span>Have Carbon Points? Use them for a capped partial discount on this purchase.</span>
                   </div>
 
                   {/* Artisan Card */}

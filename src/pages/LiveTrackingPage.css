@@ -55,3 +55,10 @@
 .driver-card__kv strong {
   color: #0f172a;
 }
+
+@media (max-width: 850px) {
+  .lt-body {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}

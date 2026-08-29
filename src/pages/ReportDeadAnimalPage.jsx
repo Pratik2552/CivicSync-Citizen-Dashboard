@@ -438,7 +438,7 @@ export default function ReportDeadAnimalPage() {
                 If your photo does not contain embedded GPS metadata, click "Use Mobile GPS" or manually type the latitude and longitude coordinates.
               </p>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: 4 }}>Latitude *</label>
                   <input
@@ -493,7 +493,7 @@ export default function ReportDeadAnimalPage() {
             </div>
 
             {/* 4. CONTACT DETAILS */}
-            <div style={{ marginBottom: '1.75rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div style={{ marginBottom: '1.75rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: 4 }}>Your Name (Optional)</label>
                 <input

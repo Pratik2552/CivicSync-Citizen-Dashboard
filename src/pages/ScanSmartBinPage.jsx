@@ -40,26 +40,36 @@ export default function ScanSmartBinPage() {
         await scanner.stop();
       }
 
-      await scanner.start(
-        { facingMode: mode },
-        {
-          fps: 10,
-          qrbox: { width: 250, height: 250 },
-          aspectRatio: 1.0
-        },
-        (decodedText) => {
-          handleSuccessfulScan(decodedText);
-        },
-        (errorMessage) => {
-          // Ignore frequent frame errors, only log if needed
-        }
-      );
+      const cameraConfig = { facingMode: mode };
+      const scanConfig = {
+        fps: 10,
+        qrbox: { width: 250, height: 250 },
+        aspectRatio: 1.0
+      };
+
+      try {
+        await scanner.start(
+          cameraConfig,
+          scanConfig,
+          (decodedText) => handleSuccessfulScan(decodedText),
+          () => {}
+        );
+      } catch (modeErr) {
+        console.warn(`Scanner mode ${mode} failed, retrying with default user camera:`, modeErr);
+        // Fallback to default camera facing mode
+        await scanner.start(
+          { facingMode: 'user' },
+          scanConfig,
+          (decodedText) => handleSuccessfulScan(decodedText),
+          () => {}
+        );
+      }
       
       setIsScanning(true);
       setCameraMode(mode);
     } catch (err) {
       console.error(err);
-      setError('Could not access camera. Please allow camera permissions.');
+      setError('Could not access camera. Please allow camera permissions or upload a QR image from gallery.');
       setIsScanning(false);
     }
   };
@@ -96,7 +106,7 @@ export default function ScanSmartBinPage() {
       const decodedText = await scanner.scanFile(file, true);
       handleSuccessfulScan(decodedText);
     } catch (err) {
-      setError('Could not detect a valid QR code in this image. Please try another.');
+      setError('Could not detect a valid QR code in this image. Please try another image.');
     }
     
     // Reset file input
@@ -110,9 +120,8 @@ export default function ScanSmartBinPage() {
     stopScanner();
     setScanResult(text);
     
-    // Example: Play a beep sound
     try {
-      const audio = new Audio('/beep.mp3'); // Optional: add a beep sound to public folder
+      const audio = new Audio('/beep.mp3');
       audio.play().catch(() => {}); 
     } catch (e) {}
   };
@@ -122,10 +131,6 @@ export default function ScanSmartBinPage() {
     
     console.log('🔍 Scanned QR Code:', scanResult);
     
-    // Parse vehicle QR code from various formats:
-    // 1. Direct: "QR-uuid"
-    // 2. URL with ?vehicle=QR-uuid
-    // 3. URL with ?v=QR-uuid (legacy)
     let vehicleQRCode = null;
     
     if (scanResult.startsWith('QR-')) {
@@ -140,25 +145,13 @@ export default function ScanSmartBinPage() {
       }
     }
     
-    // If we found a vehicle QR code, navigate to vehicle scan page
-    if (vehicleQRCode) {
-      navigate(`/citizen/scan?vehicle=${vehicleQRCode}`);
-      setIsProcessing(false);
-      return;
-    }
+    const targetCode = vehicleQRCode || scanResult.split('/').pop() || scanResult;
     
-    // Otherwise treat as bin QR
-    
-    // Extract ID if it's a URL, or use direct ID. 
-    // Example logic: if URL is https://civicsync.com/bin/BIN123, extract BIN123
-    const binId = scanResult.split('/').pop();
-    
-    // Simulate API delay before redirecting to the specific bin's action page
+    // Navigate to scan photo capture page with code parameter
     setTimeout(() => {
-      // In reality, you will navigate to something like: /bins/action?binId=BIN123
-      alert(`Proceeding to action screen for Bin: ${binId}`);
+      navigate(`/citizen/scan?vehicle=${encodeURIComponent(targetCode)}`);
       setIsProcessing(false);
-    }, 1000);
+    }, 400);
   };
 
   return (

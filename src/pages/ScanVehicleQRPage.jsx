@@ -20,6 +20,7 @@ export default function ScanVehicleQRPage() {
   const [location, setLocation] = useState(null);
   const [locationError, setLocationError] = useState('');
   const [address, setAddress] = useState('');
+  const [isCameraActive, setIsCameraActive] = useState(false);
   
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -51,13 +52,20 @@ export default function ScanVehicleQRPage() {
   // Auto-start camera when step is 'capture'
   useEffect(() => {
     if (step === 'capture' && !capturedImage) {
-      // Small delay to ensure DOM is ready
       const timer = setTimeout(() => {
         startCamera();
       }, 500);
       return () => clearTimeout(timer);
     }
   }, [step, capturedImage]);
+
+  // Sync stream to video DOM element whenever active state or ref updates
+  useEffect(() => {
+    if (isCameraActive && videoRef.current && streamRef.current) {
+      videoRef.current.srcObject = streamRef.current;
+      videoRef.current.play().catch(e => console.log('Video play error:', e));
+    }
+  }, [isCameraActive]);
 
   const fetchVehicleInfo = async () => {
     try {
@@ -113,60 +121,66 @@ export default function ScanVehicleQRPage() {
     );
   };
 
-  // Start camera
+  // Start camera with graceful fallback constraints
   const startCamera = async () => {
     try {
       setError('');
       
-      // Check if video element is available
-      if (!videoRef.current) {
-        setError('Camera interface not ready. Please try again.');
-        return;
+      let stream = null;
+      try {
+        // Try environment camera first
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: 'environment' } },
+          audio: false,
+        });
+      } catch (e) {
+        console.warn('Ideal environment camera failed, falling back to default camera:', e);
+        // Fallback to any available video stream
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false,
+        });
       }
-
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment', width: 1280, height: 720 },
-        audio: false,
-      });
+      
+      streamRef.current = stream;
+      setIsCameraActive(true);
       
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        streamRef.current = stream;
-        console.log('Camera started successfully');
       }
+      console.log('Camera started successfully');
     } catch (err) {
       console.error('Camera error:', err);
+      setIsCameraActive(false);
       if (err.name === 'NotAllowedError') {
         setError('Camera access denied. Please allow camera permissions in your browser settings.');
       } else if (err.name === 'NotFoundError') {
         setError('No camera found on your device.');
       } else {
-        setError('Unable to access camera. Please check permissions and try again.');
+        setError('Unable to access camera. Please check permissions or upload from gallery.');
       }
     }
   };
 
   // Capture photo from camera
   const capturePhoto = () => {
-    if (!videoRef.current || !canvasRef.current) {
-      setError('Camera not ready. Please restart the camera.');
+    if (!videoRef.current || !canvasRef.current || !streamRef.current) {
+      setError('Camera not ready. Please restart the camera or upload from gallery.');
       return;
     }
 
     const video = videoRef.current;
     const canvas = canvasRef.current;
     
-    // Check if video is playing
-    if (video.readyState !== video.HAVE_ENOUGH_DATA) {
-      setError('Camera is still loading. Please wait a moment and try again.');
-      return;
-    }
+    // Check if video has enough dimensions/data
+    const width = video.videoWidth || 640;
+    const height = video.videoHeight || 480;
     
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+    canvas.width = width;
+    canvas.height = height;
     
     const ctx = canvas.getContext('2d');
-    ctx.drawImage(video, 0, 0);
+    ctx.drawImage(video, 0, 0, width, height);
     
     canvas.toBlob((blob) => {
       if (!blob) {
@@ -188,12 +202,14 @@ export default function ScanVehicleQRPage() {
       streamRef.current.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
     }
+    setIsCameraActive(false);
   };
 
   // Handle file upload (alternative to camera)
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
+      stopCamera();
       const url = URL.createObjectURL(file);
       setCapturedImage(url);
       setImageFile(file);
@@ -427,11 +443,11 @@ export default function ScanVehicleQRPage() {
                     height: 'auto',
                     borderRadius: '8px',
                     backgroundColor: '#000',
-                    display: streamRef.current ? 'block' : 'none'
+                    display: isCameraActive ? 'block' : 'none'
                   }}
                 />
                 
-                {!streamRef.current && (
+                {!isCameraActive && (
                   <div style={{ 
                     width: '100%', 
                     maxWidth: '500px', 
@@ -451,7 +467,7 @@ export default function ScanVehicleQRPage() {
                 <canvas ref={canvasRef} style={{ display: 'none' }} />
                 
                 <div className="camera-controls">
-                  {!streamRef.current ? (
+                  {!isCameraActive ? (
                     <button onClick={startCamera} className="btn-secondary">
                       📷 Start Camera
                     </button>
@@ -464,10 +480,10 @@ export default function ScanVehicleQRPage() {
                   <button 
                     onClick={capturePhoto} 
                     className="btn-primary btn-large"
-                    disabled={!streamRef.current}
+                    disabled={!isCameraActive}
                     style={{
-                      opacity: streamRef.current ? 1 : 0.5,
-                      cursor: streamRef.current ? 'pointer' : 'not-allowed'
+                      opacity: isCameraActive ? 1 : 0.5,
+                      cursor: isCameraActive ? 'pointer' : 'not-allowed'
                     }}
                   >
                     📷 Capture Photo

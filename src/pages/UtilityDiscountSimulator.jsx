@@ -335,7 +335,7 @@ export default function UtilityDiscountSimulator() {
               </div>
 
               {/* Bill Reference & Amount */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
                 <div>
                   <label className="form-label" style={{ fontWeight: 600 }}>Consumer / Tax Property Account No.</label>
                   <input
@@ -484,7 +484,7 @@ export default function UtilityDiscountSimulator() {
                           <span className="badge badge-success">{verificationResult.tier} Tier ({verificationResult.max_rebate_percentage} Rebate)</span>
                         </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginTop: 8, textAlign: 'center', background: '#f8fafc', padding: 8, borderRadius: 6 }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(90px, 1fr))', gap: 8, marginTop: 8, textAlign: 'center', background: '#f8fafc', padding: 8, borderRadius: 6 }}>
                           <div>
                             <div style={{ fontSize: '0.7rem', color: '#64748b' }}>Available Pts</div>
                             <div style={{ fontWeight: 700, color: '#16a34a' }}>{verificationResult.available_points}</div>

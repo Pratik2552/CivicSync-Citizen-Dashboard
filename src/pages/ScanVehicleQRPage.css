@@ -259,24 +259,46 @@
 /* Mobile Responsive */
 @media (max-width: 768px) {
   .scan-page {
-    padding: 10px;
+    padding: 12px 8px;
+    align-items: flex-start;
+  }
+
+  .scan-container {
+    border-radius: 12px;
+    margin: 0 auto;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .scan-header {
+    padding: 20px 14px;
   }
 
   .scan-header h1 {
-    font-size: 1.5rem;
+    font-size: 1.35rem;
   }
 
   .scan-content {
-    padding: 20px;
+    padding: 16px 12px;
   }
 
   .camera-controls,
   .photo-controls {
     flex-direction: column;
+    gap: 10px;
   }
 
   .btn-primary,
-  .btn-secondary {
+  .btn-secondary,
+  .file-upload-btn {
+    width: 100%;
+    text-align: center;
+    box-sizing: border-box;
+  }
+
+  .camera-preview,
+  .captured-image {
+    max-height: 280px;
     width: 100%;
   }
 }
