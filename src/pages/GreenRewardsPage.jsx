@@ -1,35 +1,36 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Recycle, Bus, Zap, Lock, Award, Coins, CheckCircle2, ShieldCheck,
+  Recycle, Bus, Lock, Award, Coins, CheckCircle2, ShieldCheck,
   HelpCircle, Info, ArrowRight, ChevronDown, FileText, Building2,
-  TrendingUp, Sparkles, AlertTriangle, Calendar, Layers, Shield
+  TrendingUp, Sparkles, AlertTriangle, Calendar, Layers, Shield, Ticket, Zap
 } from 'lucide-react';
+import { api } from '../services/api';
 import './GreenRewardsPage.css';
 
 const earningRules = [
   {
-    activity: "Waste handed over to authorized collection vehicle",
-    points: "+5 Pts",
-    description: "Verified handover to municipal vehicle during morning round",
+    activity: "Genuine QR disposal at authorized municipal bin",
+    points: "+100 Pts",
+    description: "Credited when QR scan and disposal event pass verification checks",
     icon: CheckCircle2,
   },
   {
-    activity: "Proper wet and dry waste segregation",
-    points: "+3 Pts",
-    description: "Separate bin segregation verified by collection crew",
+    activity: "Authenticated complaint submission",
+    points: "+150 Pts",
+    description: "Complaint earns points only after AI/ops verification and valid workflow status",
     icon: Recycle,
   },
   {
-    activity: "Waste handed over during scheduled collection cycle",
-    points: "+2 Pts",
-    description: "Timely handover adhering to ward morning schedule",
+    activity: "2-week consistency streak",
+    points: "+200 Pts",
+    description: "Awarded for every 14-day consecutive verified disposal streak",
     icon: Calendar,
   },
   {
-    activity: "Maximum points credited per citizen per day",
-    points: "10 Pts",
-    description: "Daily ceiling limit per citizen account",
+    activity: "1-month consistency streak",
+    points: "+500 Pts",
+    description: "Additional bonus for every 30-day verified streak",
     icon: Award,
   },
 ];
@@ -37,18 +38,18 @@ const earningRules = [
 const benefits = [
   {
     service: "Public Bus / Monthly Pass",
-    frequency: "Monthly",
+    frequency: "As per billing cycle",
     usage: "Direct Redemption",
-    benefit: "Transport concession & monthly pass support",
+    benefit: "Transport Tax rebate via direct points redemption",
     icon: Bus,
     color: '#2563eb',
   },
   {
-    service: "Electricity Bill Adjustment",
-    frequency: "Monthly",
+    service: "Eco Bazaar Discount Coupon",
+    frequency: "Anytime",
     usage: "Direct Redemption",
-    benefit: "Eligible electricity bill credit adjustment",
-    icon: Zap,
+    benefit: "Redeem points into coupon codes for eco-friendly partner stores",
+    icon: Recycle,
     color: '#f59e0b',
   },
   {
@@ -115,7 +116,7 @@ const faqs = [
   {
     question: "Can locked tax points be withdrawn again?",
     answer:
-      "No. Once points are voluntarily locked for water tax or property tax, they remain reserved for that purpose until the applicable annual billing cycle.",
+      "Yes. You can release points from the annual tax wallet back to available balance whenever needed and re-lock them later.",
   },
   {
     question: "What happens to points I do not use?",
@@ -141,6 +142,22 @@ const faqs = [
 
 export default function GreenRewardsPage() {
   const [openFaq, setOpenFaq] = useState(null);
+  const [rewardSummary, setRewardSummary] = useState(null);
+
+  useEffect(() => {
+    let mounted = true;
+    const loadRewardSummary = async () => {
+      try {
+        const data = await api.getMunicipalRewardSummary();
+        if (mounted) setRewardSummary(data);
+      } catch (err) {
+        console.warn('Could not load municipal reward summary:', err);
+      }
+    };
+
+    loadRewardSummary();
+    return () => { mounted = false; };
+  }, []);
 
   const toggleFaq = (idx) => {
     setOpenFaq(openFaq === idx ? null : idx);
@@ -319,6 +336,59 @@ export default function GreenRewardsPage() {
                   </div>
                 );
               })}
+            </div>
+          </section>
+
+          {/* ================= SECTION 04A: MUNICIPAL BILL PAYMENT & REBATE PARTNERS ================= */}
+          <section className="gr-section">
+            <SectionHeader
+              number="04A"
+              title="Municipal Bill Payment & Rebate Partners"
+              description="Prototype / simulated municipal rewards using Green Credits and annual Green Score-based tax benefits."
+            />
+
+            <div className="card gr-card">
+              <div className="gr-grid gr-grid-2" style={{ marginBottom: 18 }}>
+                <StatPill label="Current Green Credits" value={rewardSummary?.green_credits ?? '—'} accent="#16a34a" />
+                <StatPill label="Annual Green Score" value={rewardSummary?.annual_green_score ?? '—'} accent="#2563eb" />
+                <StatPill label="Current Tier" value={rewardSummary?.current_tier ?? '—'} accent="#f59e0b" />
+                <StatPill label="Available Rewards" value={rewardSummary?.reward_partners?.length ? `${rewardSummary.reward_partners.length} offers` : '—'} accent="#7c3aed" />
+              </div>
+
+              <div className="gr-grid gr-grid-2">
+                <PartnerCard
+                  icon={Building2}
+                  title="Property Tax"
+                  subtitle="Annual Green Score based rebate"
+                  amount={rewardSummary?.property_tax_preview ? `₹${rewardSummary.property_tax_preview.final_payable} final payable` : 'Simulated example'}
+                  detail={rewardSummary?.property_tax_preview ? `Rebate: ₹${rewardSummary.property_tax_preview.eligible_rebate} · Cap: ₹${rewardSummary.property_tax_preview.rebate_cap}` : 'Silver: 0.5% / Gold: 1% · Cap ₹1,000 / ₹2,500'}
+                  color="#2563eb"
+                />
+                <PartnerCard
+                  icon={FileText}
+                  title="Water Tax"
+                  subtitle="Annual Green Score based rebate"
+                  amount={rewardSummary?.water_tax_preview ? `₹${rewardSummary.water_tax_preview.final_payable} final payable` : 'Simulated example'}
+                  detail={rewardSummary?.water_tax_preview ? `Rebate: ₹${rewardSummary.water_tax_preview.eligible_rebate} · Cap: ₹${rewardSummary.water_tax_preview.rebate_cap}` : 'Silver: 2% / Gold: 4% · Cap ₹400 / ₹800'}
+                  color="#06b6d4"
+                />
+                <PartnerCard
+                  icon={Bus}
+                  title="Public Transport"
+                  subtitle="Spendable Green Credits"
+                  amount="500 GC → ₹25 | 1,000 GC → ₹50 | 2,000 GC → ₹100"
+                  detail="Monthly/annual redemption caps apply. Reward deducted from wallet only."
+                  color="#16a34a"
+                />
+                <PartnerCard
+                  icon={Recycle}
+                  title="Eco Bazaar"
+                  subtitle="Partner marketplace"
+                  amount="300 GC → ₹20 | 750 GC → ₹50 | 1,500 GC → ₹120 | 3,000 GC → ₹250"
+                  detail="Maximum discount is 20% of purchase value. Simulated partner coupons included."
+                  color="#f59e0b"
+                />
+              </div>
             </div>
           </section>
 
@@ -638,6 +708,33 @@ function PolicyCard({ icon: Icon, heading, value, text, color }) {
       <span className="gr-policy-tag">{heading}</span>
       <div className="gr-policy-val" style={{ color }}>{value}</div>
       <p className="gr-card-sub">{text}</p>
+    </div>
+  );
+}
+
+function StatPill({ label, value, accent }) {
+  return (
+    <div className="card gr-card" style={{ padding: 14, borderLeft: `4px solid ${accent}` }}>
+      <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{label}</div>
+      <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#0f172a', marginTop: 6 }}>{value}</div>
+    </div>
+  );
+}
+
+function PartnerCard({ icon: Icon, title, subtitle, amount, detail, color }) {
+  return (
+    <div className="card gr-card" style={{ borderLeft: `4px solid ${color}` }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+        <div style={{ width: 42, height: 42, borderRadius: 10, background: `${color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', color }}>
+          <Icon size={20} />
+        </div>
+        <div>
+          <div style={{ fontSize: '1rem', fontWeight: 800, color: '#0f172a' }}>{title}</div>
+          <div style={{ fontSize: '0.76rem', color: '#64748b' }}>{subtitle}</div>
+        </div>
+      </div>
+      <div style={{ fontSize: '0.92rem', fontWeight: 700, color: '#1e293b', marginBottom: 6 }}>{amount}</div>
+      <div style={{ fontSize: '0.8rem', lineHeight: 1.6, color: '#475569' }}>{detail}</div>
     </div>
   );
 }

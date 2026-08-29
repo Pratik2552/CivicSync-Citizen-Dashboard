@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import jsQR from 'jsqr';
 import {
-  Building2, Droplets, Zap, Bus, QrCode, ShieldCheck, CheckCircle2,
+  Building2, Droplets, Bus, QrCode, ShieldCheck, CheckCircle2,
   AlertCircle, ArrowRight, CreditCard, Lock, Sparkles, RefreshCw, Upload
 } from 'lucide-react';
 import { api } from '../services/api';
@@ -13,8 +13,8 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 const UTILITY_TYPES = [
   { id: 'PROPERTY_TAX', label: 'Property Tax (Annual)', icon: Building2, defaultBill: 5000, color: '#16a34a' },
   { id: 'WATER_TAX', label: 'Water Supply Bill (Annual)', icon: Droplets, defaultBill: 1500, color: '#0891b2' },
-  { id: 'ELECTRICITY_BILL', label: 'Electricity Bill (Monthly)', icon: Zap, defaultBill: 1200, color: '#d97706' },
-  { id: 'BUS_PASS', label: 'Municipal Bus Pass (Monthly)', icon: Bus, defaultBill: 800, color: '#2563eb' },
+  { id: 'TRANSPORT_TAX', label: 'Transport Tax', icon: Bus, defaultBill: 1200, color: '#2563eb' },
+  { id: 'ECO_BAZAAR', label: 'Eco Bazaar Coupon', icon: Sparkles, defaultBill: 1000, color: '#d97706' },
 ];
 
 export default function UtilityDiscountSimulator() {

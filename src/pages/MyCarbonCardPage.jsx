@@ -87,7 +87,7 @@ export default function MyCarbonCardPage() {
         name: user?.full_name ? user.full_name.split(' ')[0] : 'Citizen',
         v: 1,
         cid: json.citizen_id,
-        pts: json.total_points,
+        pts: json.available_points,
       });
       setQrValue(qrPayload);
     } catch (err) {
@@ -205,7 +205,7 @@ export default function MyCarbonCardPage() {
             <ArrowLeft size={16} /> Back to Dashboard
           </Link>
           <h1>My Carbon Card &amp; Benefits</h1>
-          <p>Claim property tax, water tax, and bus pass rebates using your verifiable eco-points.</p>
+          <p>Claim property tax, water tax, transport tax, and eco bazaar discounts using your verifiable eco-points.</p>
         </div>
       </div>
 
@@ -259,7 +259,7 @@ export default function MyCarbonCardPage() {
                           }
                         </div>
                         <span style={{ fontSize: '0.65rem', color: '#fff', opacity: 0.9, display: 'flex', alignItems: 'center', gap: 4 }}>
-                          <ShieldCheck size={12} color="#4ade80" /> HMAC-SHA256 Secure
+                            <ShieldCheck size={12} color="#4ade80" /> AES-256-GCM Secure
                         </span>
                       </div>
 
@@ -267,7 +267,10 @@ export default function MyCarbonCardPage() {
                         <div className="cc-info-group">
                           <span className="cc-label">Net Available Points</span>
                           <span className="cc-value points" style={{ fontSize: '1.4rem', color: '#fef08a' }}>
-                            ⭐ {(data.total_points || 0).toLocaleString()} <span style={{ fontSize: '0.75rem', fontWeight: 400, color: '#fef3c7' }}>pts</span>
+                            ⭐ {(data.available_points || 0).toLocaleString()} <span style={{ fontSize: '0.75rem', fontWeight: 400, color: '#fef3c7' }}>pts</span>
+                          </span>
+                          <span style={{ fontSize: '0.7rem', color: '#dcfce7' }}>
+                            Wallet: {(data.tax_wallet_points || 0).toLocaleString()} pts
                           </span>
                         </div>
                         <div className="cc-info-group">
@@ -386,7 +389,7 @@ export default function MyCarbonCardPage() {
                       🏛️ Test External Govt Utility Portal Integration
                     </strong>
                     <span style={{ fontSize: '0.8rem', color: '#1d4ed8', display: 'block', marginTop: 2 }}>
-                      Test claiming points on Property Tax, Water Tax, Electricity, or Bus Pass on the simulated Govt Billing portal using your QR code or Card ID.
+                      Test claiming points on Property Tax, Water Tax, Transport Tax, or Eco Bazaar coupons on the simulated portal using your QR code or Card ID.
                     </span>
                   </div>
                   <Link
@@ -404,7 +407,7 @@ export default function MyCarbonCardPage() {
                     <Ticket color="#ea580c" size={20} /> Municipal Bill Payment Rebate Partners
                   </h3>
                   <p style={{ fontSize: '0.875rem', color: '#78716c', marginBottom: 16 }}>
-                    Redeem your accumulated carbon points for discounts on property tax, water supply bills, and city bus passes.
+                    Redeem your accumulated carbon points for discounts on property tax, water tax, transport tax, and eco bazaar partner coupons.
                   </p>
 
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
@@ -436,14 +439,27 @@ export default function MyCarbonCardPage() {
 
                     <div style={{ background: '#fff', padding: '1rem', borderRadius: 8, border: '1px solid #e7e5e4' }}>
                       <Bus size={24} color="#16a34a" style={{ marginBottom: 6 }} />
-                      <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>City Bus Pass Discount</div>
+                      <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>Transport Tax Rebate</div>
                       <div style={{ fontSize: '0.8rem', color: '#57534e', margin: '4px 0' }}>1 Pt = ₹1.00 Discount</div>
                       <button
-                        onClick={() => { setSelectedBenefit('BUS_PASS'); setShowClaimModal(true); }}
+                        onClick={() => { setSelectedBenefit('TRANSPORT_TAX'); setShowClaimModal(true); }}
                         className="btn btn-sm"
                         style={{ marginTop: 8, width: '100%', background: '#dcfce7', color: '#15803d', border: 'none', fontWeight: 600 }}
                       >
-                        Redeem Bus Pass
+                        Redeem Transport Tax
+                      </button>
+                    </div>
+
+                    <div style={{ background: '#fff', padding: '1rem', borderRadius: 8, border: '1px solid #e7e5e4' }}>
+                      <Leaf size={24} color="#0f766e" style={{ marginBottom: 6 }} />
+                      <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>Eco Bazaar Coupon</div>
+                      <div style={{ fontSize: '0.8rem', color: '#57534e', margin: '4px 0' }}>1 Pt = ₹1.00 Discount</div>
+                      <button
+                        onClick={() => { setSelectedBenefit('ECO_BAZAAR'); setShowClaimModal(true); }}
+                        className="btn btn-sm"
+                        style={{ marginTop: 8, width: '100%', background: '#ccfbf1', color: '#115e59', border: 'none', fontWeight: 600 }}
+                      >
+                        Redeem Eco Bazaar
                       </button>
                     </div>
                   </div>
@@ -496,9 +512,9 @@ export default function MyCarbonCardPage() {
                   </div>
                   <div style={{ textAlign: 'center', padding: '1rem', background: '#fefce8', borderRadius: 8, border: '1px solid #fef08a' }}>
                     <Star size={20} color="#ca8a04" style={{ margin: '0 auto 6px' }} />
-                    <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#a16207' }}>{data.total_points}</div>
-                    <div style={{ fontSize: '0.75rem', color: '#854d0e' }}>Net Available</div>
-                    <div style={{ fontSize: '0.7rem', color: '#ca8a04', marginTop: 2 }}>{data.redeemed_points || 0} claimed</div>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#a16207' }}>{data.available_points}</div>
+                    <div style={{ fontSize: '0.75rem', color: '#854d0e' }}>Spendable Balance</div>
+                    <div style={{ fontSize: '0.7rem', color: '#ca8a04', marginTop: 2 }}>{data.tax_wallet_points || 0} in wallet</div>
                   </div>
                 </div>
               </>
@@ -513,7 +529,7 @@ export default function MyCarbonCardPage() {
               <Lock size={18} color="#2563eb" /> Security &amp; Verification API
             </h3>
             <p style={{ fontSize: '0.825rem', color: '#475569', lineHeight: 1.6, marginTop: 8 }}>
-              External property tax &amp; water bill portals call CivicSync API (<code>/api/carbon-points/external-verify</code>) with HMAC-SHA256 signature verification to check your points securely.
+              External civic billing portals call CivicSync API (<code>/api/carbon-points/external-verify</code>) with encrypted QR verification to check your points securely.
             </p>
           </div>
 
@@ -551,7 +567,7 @@ export default function MyCarbonCardPage() {
                   {claimSuccess.voucher_code}
                 </div>
                 <div style={{ fontSize: '0.9rem', color: '#1e293b', marginBottom: 16 }}>
-                  <strong>Discount: ₹{claimSuccess.discount_amount_inr} OFF</strong> on {claimSuccess.redemption_details?.benefit_type}
+                  <strong>Discount: ₹{claimSuccess.discount_applied_inr || claimSuccess.discount_amount_inr || 0} OFF</strong> on {claimSuccess.redemption_details?.benefit_type}
                 </div>
                 <button onClick={() => { setShowClaimModal(false); setClaimSuccess(null); }} className="btn btn-primary" style={{ width: '100%' }}>Done</button>
               </div>
@@ -568,7 +584,8 @@ export default function MyCarbonCardPage() {
                   <select value={selectedBenefit} onChange={e => setSelectedBenefit(e.target.value)} className="form-select" style={{ width: '100%', padding: '8px 12px' }}>
                     <option value="PROPERTY_TAX">Property Tax Discount</option>
                     <option value="WATER_TAX">Water Bill Rebate</option>
-                    <option value="BUS_PASS">City Bus Pass Discount</option>
+                    <option value="TRANSPORT_TAX">Transport Tax Rebate</option>
+                    <option value="ECO_BAZAAR">Eco Bazaar Coupon</option>
                   </select>
                 </div>
 
@@ -577,7 +594,7 @@ export default function MyCarbonCardPage() {
                   <input
                     type="number"
                     min="10"
-                    max={data?.total_points || 100}
+                    max={data?.available_points || 100}
                     value={pointsToClaim}
                     onChange={e => setPointsToClaim(e.target.value)}
                     className="form-input"
@@ -585,7 +602,7 @@ export default function MyCarbonCardPage() {
                     required
                   />
                   <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
-                    1 Point = ₹1.00 Discount (Max available: {data?.total_points || 0} pts)
+                    1 Point = ₹1.00 Discount (Max available: {data?.available_points || 0} pts)
                   </span>
                 </div>
 

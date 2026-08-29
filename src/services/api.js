@@ -266,6 +266,30 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ points }),
     }),
+
+  getMunicipalRewardSummary: () => request('/carbon-points/rewards/summary'),
+
+  simulateMunicipalTaxRebate: (billAmount, billType, annualGreenScore) =>
+    request('/carbon-points/rewards/tax-simulate', {
+      method: 'POST',
+      body: JSON.stringify({
+        bill_amount: billAmount,
+        bill_type: billType,
+        annual_green_score: annualGreenScore,
+      }),
+    }),
+
+  redeemTransportCoupon: (couponValue) =>
+    request('/carbon-points/rewards/transport/redeem', {
+      method: 'POST',
+      body: JSON.stringify({ coupon_value: couponValue }),
+    }),
+
+  redeemEcoBazaarCoupon: (couponValue) =>
+    request('/carbon-points/rewards/ecobazaar/redeem', {
+      method: 'POST',
+      body: JSON.stringify({ coupon_value: couponValue }),
+    }),
 };
 
 export const verifyImage = api.verifyImage;
