@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Recycle, Bus, Zap, Lock, Award, Coins, CheckCircle2, ShieldCheck,
+  Recycle, Bus, Lock, Award, Coins, CheckCircle2, ShieldCheck,
   HelpCircle, Info, ArrowRight, ChevronDown, FileText, Building2,
   TrendingUp, Sparkles, AlertTriangle, Calendar, Layers, Shield
 } from 'lucide-react';
@@ -9,27 +9,27 @@ import './GreenRewardsPage.css';
 
 const earningRules = [
   {
-    activity: "Waste handed over to authorized collection vehicle",
-    points: "+5 Pts",
-    description: "Verified handover to municipal vehicle during morning round",
+    activity: "Genuine QR disposal at authorized municipal bin",
+    points: "+100 Pts",
+    description: "Credited when QR scan and disposal event pass verification checks",
     icon: CheckCircle2,
   },
   {
-    activity: "Proper wet and dry waste segregation",
-    points: "+3 Pts",
-    description: "Separate bin segregation verified by collection crew",
+    activity: "Authenticated complaint submission",
+    points: "+150 Pts",
+    description: "Complaint earns points only after AI/ops verification and valid workflow status",
     icon: Recycle,
   },
   {
-    activity: "Waste handed over during scheduled collection cycle",
-    points: "+2 Pts",
-    description: "Timely handover adhering to ward morning schedule",
+    activity: "2-week consistency streak",
+    points: "+200 Pts",
+    description: "Awarded for every 14-day consecutive verified disposal streak",
     icon: Calendar,
   },
   {
-    activity: "Maximum points credited per citizen per day",
-    points: "10 Pts",
-    description: "Daily ceiling limit per citizen account",
+    activity: "1-month consistency streak",
+    points: "+500 Pts",
+    description: "Additional bonus for every 30-day verified streak",
     icon: Award,
   },
 ];
@@ -37,18 +37,18 @@ const earningRules = [
 const benefits = [
   {
     service: "Public Bus / Monthly Pass",
-    frequency: "Monthly",
+    frequency: "As per billing cycle",
     usage: "Direct Redemption",
-    benefit: "Transport concession & monthly pass support",
+    benefit: "Transport Tax rebate via direct points redemption",
     icon: Bus,
     color: '#2563eb',
   },
   {
-    service: "Electricity Bill Adjustment",
-    frequency: "Monthly",
+    service: "Eco Bazaar Discount Coupon",
+    frequency: "Anytime",
     usage: "Direct Redemption",
-    benefit: "Eligible electricity bill credit adjustment",
-    icon: Zap,
+    benefit: "Redeem points into coupon codes for eco-friendly partner stores",
+    icon: Recycle,
     color: '#f59e0b',
   },
   {
@@ -115,7 +115,7 @@ const faqs = [
   {
     question: "Can locked tax points be withdrawn again?",
     answer:
-      "No. Once points are voluntarily locked for water tax or property tax, they remain reserved for that purpose until the applicable annual billing cycle.",
+      "Yes. You can release points from the annual tax wallet back to available balance whenever needed and re-lock them later.",
   },
   {
     question: "What happens to points I do not use?",
