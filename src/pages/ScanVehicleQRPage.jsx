@@ -25,6 +25,25 @@ export default function ScanVehicleQRPage() {
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
 
+  const getMappedBinLocationForUser = () => {
+    try {
+      const storedUser = JSON.parse(localStorage.getItem('civicsync_user') || 'null');
+      const email = (user?.email || storedUser?.email || '').toLowerCase();
+      if (email === 'zandu@gmail.com') {
+        return {
+          binName: 'BIN-001',
+          zone: 'Zone A',
+          latitude: 18.5308,
+          longitude: 73.8474,
+          address: 'Zone A • BIN-001 • Shivajinagar',
+        };
+      }
+    } catch (err) {
+      console.warn('Demo mapping lookup failed:', err);
+    }
+    return null;
+  };
+
   // Fetch vehicle information
   useEffect(() => {
     if (!vehicleQRCode) {
@@ -80,6 +99,16 @@ export default function ScanVehicleQRPage() {
 
   // Get GPS location
   const getLocation = () => {
+    const mappedBinLocation = getMappedBinLocationForUser();
+    if (mappedBinLocation) {
+      setLocation({
+        latitude: mappedBinLocation.latitude,
+        longitude: mappedBinLocation.longitude,
+      });
+      setAddress(mappedBinLocation.address);
+      return;
+    }
+
     if (!navigator.geolocation) {
       setLocationError('Geolocation not supported by your browser');
       return;
@@ -236,6 +265,7 @@ export default function ScanVehicleQRPage() {
         throw new Error(uploadData.error || 'Failed to upload image');
       }
 
+      const mappedBin = getMappedBinLocationForUser();
       const scanData = {
         vehicle_qr_code: vehicleQRCode,
         garbage_image_url: uploadData.url,
@@ -244,6 +274,18 @@ export default function ScanVehicleQRPage() {
         scan_address: address,
         device_info: navigator.userAgent,
       };
+
+      const demoUserEmail = (user?.email || JSON.parse(localStorage.getItem('civicsync_user') || 'null')?.email || '').toLowerCase();
+      if (demoUserEmail === 'zandu@gmail.com') {
+        localStorage.setItem('civicsync_recent_bin_scan', JSON.stringify({
+          email: demoUserEmail,
+          binName: mappedBin?.binName || 'BIN-001',
+          zone: mappedBin?.zone || 'Zone A',
+          latitude: mappedBin?.latitude ?? location.latitude,
+          longitude: mappedBin?.longitude ?? location.longitude,
+          timestamp: new Date().toISOString(),
+        }));
+      }
 
       const scanResponse = await fetch(`${API_URL}/qr-scan/scan`, {
         method: 'POST',

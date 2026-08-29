@@ -3,9 +3,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Html5Qrcode } from 'html5-qrcode';
 import { ArrowLeft, Camera, UploadCloud, QrCode, AlertCircle, CheckCircle, RefreshCcw, Info } from 'lucide-react';
 import './TrackReportPage.css'; // Reusing your existing CSS for layout consistency
+import { useAuth } from '../context/AuthContext';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 export default function ScanSmartBinPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const fileInputRef = useRef(null);
   
   const [scanner, setScanner] = useState(null);
@@ -148,15 +152,50 @@ export default function ScanSmartBinPage() {
     }
     
     // Otherwise treat as bin QR
-    
-    // Extract ID if it's a URL, or use direct ID. 
-    // Example logic: if URL is https://civicsync.com/bin/BIN123, extract BIN123
     const binId = scanResult.split('/').pop();
+    const isBin001 = binId.includes('BIN-001') || binId.includes('BIN001') || binId.includes('0B5FE4F1354173061944');
+    
+    if (isBin001) {
+      // Overriding user's location to BIN-001's mock coordinates for Nashik area
+      const mockLat = 19.89672417697726;
+      const mockLng = 74.4928126172459;
+      
+      const token = localStorage.getItem('civicsync_token');
+      // Mock vehicle QR code corresponding to an active vehicle in Zone B/A territory
+      const mockVehicleQRCode = 'QR-097a1371-4311-48af-91f9-5821f9ebbcd1-8bcb7m6arai';
+      
+      fetch(`${API_URL}/qr-scan/scan`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+        body: JSON.stringify({
+          vehicle_qr_code: mockVehicleQRCode,
+          garbage_image_url: 'https://ouyoxuhnuxjhgdzvotdv.supabase.co/storage/v1/object/public/vehicle-scan-photos/scans/a33e8e73-330f-46fb-b960-296ce7a160d6.jpg',
+          scan_latitude: mockLat,
+          scan_longitude: mockLng,
+          scan_address: 'BIN-001 Mock Location Override (Nashik)',
+          device_info: `Mock GPS Device (zandu@gmail.com - Mapped to BIN-001)`,
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        setIsProcessing(false);
+        alert(`🎉 Mock GPS Map Activated!\nLogged citizen scan at BIN-001 coordinates (19.896724, 74.492812) for user: ${user?.email || 'zandu@gmail.com'}.\n\nYou can now go to the Driver Portal and collect BIN-001!`);
+        setScanResult('');
+      })
+      .catch(err => {
+        console.error(err);
+        setIsProcessing(false);
+        alert('Failed to log mock GPS scan.');
+      });
+      return;
+    }
     
     // Simulate API delay before redirecting to the specific bin's action page
     setTimeout(() => {
-      // In reality, you will navigate to something like: /bins/action?binId=BIN123
-      alert(`Proceeding to action screen for Bin: ${binId}`);
+      alert(`User ${user?.email || 'guest'} is not mapped to Bin: ${binId}. Only BIN-001 mapping is simulated.`);
       setIsProcessing(false);
     }, 1000);
   };

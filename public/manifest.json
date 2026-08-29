@@ -1,0 +1,18 @@
+{
+  "name": "CivicSync Citizen Portal",
+  "short_name": "CivicSync",
+  "description": "CivicSync Smart Waste Citizen Portal. Report waste complaints and track eco-rewards.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f2347",
+  "theme_color": "#10b981",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon-512.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
