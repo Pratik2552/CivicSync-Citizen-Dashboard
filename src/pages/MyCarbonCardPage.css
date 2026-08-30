@@ -251,6 +251,10 @@
 @media (max-width: 480px) {
   .carbon-credit-card {
     padding: 1rem 1.2rem;
+    aspect-ratio: auto;
+    min-height: 500px;
+    justify-content: flex-start;
+    gap: 1rem;
   }
   
   .cc-brand {
@@ -261,6 +265,11 @@
   .cc-tier-badge {
     font-size: 0.62rem;
     padding: 2px 8px;
+  }
+
+  .cc-header {
+    flex-wrap: wrap;
+    gap: 0.5rem;
   }
   
   .cc-body {
@@ -277,6 +286,7 @@
   .cc-info {
     align-items: center;
     width: 100%;
+    gap: 0.65rem;
   }
   
   .cc-label {
@@ -288,7 +298,7 @@
   }
   
   .cc-value.points {
-    font-size: 1.3rem;
+    font-size: 1.45rem !important;
   }
   
   .cc-footer {
@@ -296,6 +306,7 @@
     align-items: center;
     gap: 0.5rem;
     text-align: center;
+    width: 100%;
   }
   
   .cc-id {
