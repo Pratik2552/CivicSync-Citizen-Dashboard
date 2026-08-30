@@ -186,6 +186,10 @@ export default function MyCarbonCardPage() {
   };
 
   const tier = data?.tier || 'BRONZE';
+  const availablePoints = Number(data?.available_points || 0);
+  const walletPoints = Number(data?.tax_wallet_points || 0);
+  const totalPoints = availablePoints + walletPoints;
+  const userId = data?.citizen_id || user?.id || user?.user_id || 'Not available';
   const tierColors = {
     PLATINUM: 'linear-gradient(135deg, #1e293b 0%, #475569 100%)',
     GOLD:     'linear-gradient(135deg, #78350f 0%, #d97706 100%)',
@@ -265,12 +269,12 @@ export default function MyCarbonCardPage() {
 
                       <div className="cc-info">
                         <div className="cc-info-group">
-                          <span className="cc-label">Net Available Points</span>
+                          <span className="cc-label">Carbon Card Balance</span>
                           <span className="cc-value points" style={{ fontSize: '1.4rem', color: '#fef08a' }}>
-                            ⭐ {(data.available_points || 0).toLocaleString()} <span style={{ fontSize: '0.75rem', fontWeight: 400, color: '#fef3c7' }}>pts</span>
+                            ⭐ {totalPoints.toLocaleString()} <span style={{ fontSize: '0.75rem', fontWeight: 400, color: '#fef3c7' }}>pts</span>
                           </span>
                           <span style={{ fontSize: '0.7rem', color: '#dcfce7' }}>
-                            Wallet: {(data.tax_wallet_points || 0).toLocaleString()} pts
+                            Available: {availablePoints.toLocaleString()} · Wallet: {walletPoints.toLocaleString()} pts
                           </span>
                         </div>
                         <div className="cc-info-group">
@@ -278,9 +282,9 @@ export default function MyCarbonCardPage() {
                           <span className="cc-value">{maskName(user?.full_name || user?.email || 'Citizen')}</span>
                         </div>
                         <div className="cc-info-group">
-                          <span className="cc-label">Member Card ID</span>
+                          <span className="cc-label">User ID</span>
                           <span className="cc-value" style={{ fontSize: '0.9rem', fontFamily: 'monospace', color: '#67e8f9' }}>
-                            {maskId(data.citizen_id)}
+                            {userId}
                           </span>
                         </div>
                       </div>
