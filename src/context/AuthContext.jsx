@@ -20,8 +20,8 @@ export const AuthProvider = ({ children }) => {
     try {
       const data = await api.login(email, password);
       // API now returns access_token (Supabase session token)
-      const token = data.access_token || data.token;
-      if (token) {
+      const token = data?.access_token || data?.token;
+      if (token && data.user) {
         localStorage.setItem('civicsync_token', token);
         localStorage.setItem('civicsync_user', JSON.stringify(data.user));
         if (data.refresh_token) localStorage.setItem('civicsync_refresh_token', data.refresh_token);

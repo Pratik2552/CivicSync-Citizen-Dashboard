@@ -121,22 +121,11 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const res = await api.login(email, password);
-      console.log('✅ Login response:', res);
-      
-      // Backend returns: { message, user, access_token, refresh_token, expires_at }
-      if (res.access_token && res.user) {
-        localStorage.setItem('civicsync_token', res.access_token);
-        localStorage.setItem('civicsync_refresh_token', res.refresh_token);
-        localStorage.setItem('civicsync_token_expires_at', res.expires_at);
-        localStorage.setItem('civicsync_user', JSON.stringify(res.user));
-        
-        if (login) {
-          await login(email, password);
-        }
+      const result = await login(email, password);
+      if (result.success) {
         navigate('/profile');
       } else {
-        setLoginError('Invalid response from server. Please try again.');
+        setLoginError(result.error || 'Invalid email or password. Please try again.');
       }
     } catch (err) {
       console.error('❌ Login error:', err);
